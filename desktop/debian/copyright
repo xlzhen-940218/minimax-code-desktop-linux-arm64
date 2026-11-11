@@ -1,0 +1,8 @@
+This package repackages the official MiniMax Code desktop application for Linux.
+
+MiniMax Code is proprietary software. The application payload, trademarks and
+other rights belong to MiniMax. Use of the application is governed by MiniMax's
+terms of service.
+
+The packaging scripts in desktop/ are provided as-is for interoperability and
+personal use. They are not affiliated with or endorsed by MiniMax.

@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+# Chromium's setuid sandbox helper must be owned by root and executable by all.
+if [ -f /opt/minimax-code/chrome-sandbox ]; then
+  chown root:root /opt/minimax-code/chrome-sandbox || true
+  chmod 4755 /opt/minimax-code/chrome-sandbox || true
+fi
+
+if command -v update-desktop-database >/dev/null 2>&1; then
+  update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
+fi
+
+exit 0

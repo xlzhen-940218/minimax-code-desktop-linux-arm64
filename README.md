@@ -288,13 +288,32 @@ English is the primary documentation language. The [Chinese README](README_ZH.md
 
 For now, code and documentation pull requests are accepted only from repository collaborators. If you are not a collaborator but have an idea or proposal, please [open an issue](https://github.com/MiniMax-AI/minimax-code/issues/new/choose) so we can discuss it. Remove secrets, account details, and private project content from reports.
 
+## Linux desktop build
+
+The official desktop app ships for macOS and Windows only. This repository adds a reproducible Linux build in [desktop/](desktop/): it repackages the official Windows installer with the matching Electron Linux runtime, rebuilds the native modules, and produces a Debian package.
+
+<p align="center">
+  <img src="desktop/screenshots/workspace.png" alt="MiniMax Code running on Linux" width="900">
+</p>
+
+[Download the Linux build](https://github.com/xlzhen-940218/minimax-code-linux-arm64/releases/latest) from the latest release, then install it:
+
+```bash
+sudo apt install ./minimax-code_3.1.13_arm64.deb
+minimax-code
+```
+
+The release publishes an `arm64` Debian package verified on Debian 13 with MiniMax Code 3.1.13 and Electron 42.11.16; `x64` packages are built the same way with `--arch x64` on an x64 host. To build or update it yourself, follow [desktop/README.md](desktop/README.md).
+
+This build is not published or supported by MiniMax. The desktop application remains proprietary and subject to MiniMax's terms of service.
+
 ## Desktop app and support
 
 <a href="https://agent.minimax.io/download" title="Download MiniMax Code">
   <img src="https://filecdn.minimax.chat/public/c3ebbd2e-f55b-48d7-adff-030abb63e06d.png" alt="MiniMax Code desktop app — click to download" width="100%" />
 </a>
 
-[Download for macOS or Windows](https://agent.minimax.io/download) · [Report a problem or ask a question](https://github.com/MiniMax-AI/minimax-code/issues/new/choose)
+[Download for macOS or Windows](https://agent.minimax.io/download) · [Download the Linux build](https://github.com/xlzhen-940218/minimax-code-linux-arm64/releases/latest) · [Report a problem or ask a question](https://github.com/MiniMax-AI/minimax-code/issues/new/choose)
 
 This repository also hosts issue reporting for the MiniMax Code desktop app. The published source covers the terminal TUI, headless CLI, and ACP; it does not include the desktop application's source. Select the affected product when filing an issue. For a desktop bug, include the app version, operating system, and a log upload ID if available from **Settings → General → Upload logs**. For a CLI bug, include `mcode --version`, your interface, and a minimal reproduction. Remove credentials and private project content from reports.
 

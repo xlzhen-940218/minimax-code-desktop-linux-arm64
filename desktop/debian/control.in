@@ -1,0 +1,20 @@
+Package: minimax-code
+Version: @VERSION@
+Section: devel
+Priority: optional
+Architecture: @DEB_ARCH@
+Installed-Size: @INSTALLED_SIZE@
+Maintainer: minimax-code-linux contributors <maintainers@users.noreply.github.com>
+Homepage: https://github.com/xlzhen-940218/minimax-code-linux-arm64
+Depends: libgtk-3-0 | libgtk-3-0t64, libnss3, libasound2 | libasound2t64, libxss1,
+ libgbm1, libdrm2, libxkbcommon0, libatk-bridge2.0-0 | libatk-bridge2.0-0t64,
+ libcups2 | libcups2t64, libxdamage1, libxcomposite1, libxrandr2, libx11-xcb1,
+ libpango-1.0-0 | libpango-1.0-0t64, libcairo2
+Recommends: xdg-utils
+Description: MiniMax Code desktop client (unofficial Linux build)
+ An unofficial Linux build of the MiniMax Code desktop client, produced by
+ repackaging the official Windows application with the matching Electron
+ Linux runtime and native modules.
+ .
+ This package is not published or supported by MiniMax. MiniMax Code itself
+ remains proprietary software and is subject to MiniMax's terms of service.

@@ -285,13 +285,32 @@ node /absolute/path/to/minimax-code/dist/cli.js
 
 目前仅接受仓库协作者提交代码和文档 Pull Request。如果你不是协作者，但有想法或方案，欢迎先通过 [Issue](https://github.com/MiniMax-AI/minimax-code/issues/new/choose) 讨论。请在报告中移除密钥、账号信息和私人项目内容。
 
+## Linux 桌面版
+
+官方桌面版仅提供 macOS 与 Windows 版本。本仓库在 [desktop/](desktop/) 中提供可复现的 Linux 构建：把官方 Windows 安装包与对应版本的 Electron Linux 运行时重新打包，重新编译原生模块，并生成 Debian 安装包。
+
+<p align="center">
+  <img src="desktop/screenshots/workspace.png" alt="在 Linux 上运行的 MiniMax Code" width="900">
+</p>
+
+到最新的 [Release 页面下载 Linux 版本](https://github.com/xlzhen-940218/minimax-code-linux-arm64/releases/latest)，然后安装：
+
+```bash
+sudo apt install ./minimax-code_3.1.13_arm64.deb
+minimax-code
+```
+
+Release 中的 `arm64` 安装包已在 Debian 13、MiniMax Code 3.1.13 与 Electron 42.11.16 下验证；`x64` 安装包可在 x64 主机上用 `--arch x64` 以同样方式构建。自行构建或升级请参考 [desktop/README.md](desktop/README.md)。
+
+该构建不由 MiniMax 发布或支持。桌面应用本身仍为闭源专有软件，并受 MiniMax 服务条款约束。
+
 ## 桌面版与问题反馈
 
 <a href="https://agent.minimaxi.com/download" title="下载 MiniMax Code">
   <img src="https://filecdn.minimax.chat/public/c3ebbd2e-f55b-48d7-adff-030abb63e06d.png" alt="MiniMax Code 桌面版 — 点击下载" width="100%" />
 </a>
 
-[下载 macOS 或 Windows 桌面版](https://agent.minimaxi.com/download) · [报告问题或提问](https://github.com/MiniMax-AI/minimax-code/issues/new/choose)
+[下载 macOS 或 Windows 桌面版](https://agent.minimaxi.com/download) · [下载 Linux 桌面版](https://github.com/xlzhen-940218/minimax-code-linux-arm64/releases/latest) · [报告问题或提问](https://github.com/MiniMax-AI/minimax-code/issues/new/choose)
 
 本仓库也承接 MiniMax Code 桌面版的问题反馈。公开源码范围为终端 TUI、Headless CLI 和 ACP，不包含桌面应用源码。提交 Issue 时请选择对应产品。桌面版问题请注明应用版本、操作系统，以及「设置 → 通用 → 上传日志」生成的日志上传 ID（如可用）；CLI 问题请注明 `mcode --version`、运行入口与最小复现。报告中请移除凭据和私人项目内容。
 

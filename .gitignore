@@ -8,3 +8,5 @@ dist/
 .env.*
 !.env.example
 .DS_Store
+# Official Windows installer used as input by desktop/build-linux.sh
+MiniMax Code Setup *.exe

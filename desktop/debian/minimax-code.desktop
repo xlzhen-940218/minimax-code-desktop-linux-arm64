@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=MiniMax Code
+Comment=MiniMax Code desktop client
+Exec=/opt/minimax-code/minimax-code %u
+Icon=minimax-code
+Terminal=false
+Categories=Development;
+StartupWMClass=mmx-agent-electron
+MimeType=x-scheme-handler/minimax-cn;x-scheme-handler/minimax;
