@@ -54,6 +54,7 @@
     "desktop/screenshots/workspace.png",
     "desktop/scripts/asar-placeholders.mjs",
     "desktop/scripts/install-platform-packages.mjs",
+    "desktop/scripts/patch-app.mjs",
     "docs/README.md",
     "docs/architecture.md",
     "docs/assets/hook-system-message-tui.png",

@@ -117,7 +117,11 @@ unprivileged user namespaces for unconfined applications.
 6. Rebuilds `better-sqlite3` and `node-pty` against the Electron ABI with
    `node-gyp`.
 7. Repacks `app.asar` with `node_modules` unpacked, assembles the runtime, and
-   creates the `.deb` (or portable archive).
+   creates the `.deb` (or portable archive). The launcher exports
+   `ELECTRON_FORCE_IS_PACKAGED=true`: without it Electron reports
+   `app.isPackaged === false` when the app is started from the application menu,
+   and the desktop UI then takes its source-checkout paths, so the local service
+   fails with `utility runtime initialization handshake failed`.
 
 Apart from that tray patch, no application code is changed: the desktop code
 already contains Linux branches for windows, the sandbox and the terminal. The
