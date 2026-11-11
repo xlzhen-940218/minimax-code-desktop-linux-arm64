@@ -1,0 +1,19 @@
+{
+  "name": "@mavis/protocol",
+  "version": "0.2.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "@creditkarma/thrift-typescript": "^3",
+    "@types/node": "20.19.39",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}

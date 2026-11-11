@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cloud Runtime Simple Coding Agent 验证链路</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #172033;
+        --muted: #5f6877;
+        --line: #d7dde7;
+        --panel: #ffffff;
+        --band: #f4f7fb;
+        --blue: #2563eb;
+        --green: #0f8b68;
+        --amber: #b45309;
+        --red: #b42318;
+        --violet: #6d4aff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        color: var(--ink);
+        background: var(--band);
+        line-height: 1.55;
+      }
+
+      header {
+        padding: 40px 28px 24px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--line);
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 24px 20px 56px;
+        min-width: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 34px;
+        line-height: 1.16;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        max-width: 1180px;
+        margin: 12px auto 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      section {
+        margin-top: 22px;
+        padding: 24px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      h2 {
+        font-size: 20px;
+        margin-bottom: 14px;
+      }
+
+      h3 {
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+
+      code {
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+        font-size: 0.92em;
+        color: #0f172a;
+        background: #eef2f7;
+        padding: 2px 6px;
+        border-radius: 4px;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      pre {
+        margin: 12px 0 0;
+        max-width: 100%;
+        overflow: auto;
+        padding: 14px 16px;
+        color: #dbeafe;
+        background: #111827;
+        border-radius: 8px;
+        white-space: pre-wrap;
+      }
+
+      pre code {
+        padding: 0;
+        color: inherit;
+        background: transparent;
+        white-space: inherit;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(112px, 1fr));
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .node {
+        min-width: 0;
+        min-height: 116px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdff;
+      }
+
+      .node strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+
+      .node span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .arrow {
+        display: none;
+      }
+
+      .node.server {
+        border-color: #9ab6ff;
+        background: #eef4ff;
+      }
+
+      .node.runtime {
+        border-color: #9bd8c6;
+        background: #eefaf6;
+      }
+
+      .node.agent {
+        border-color: #f2c37d;
+        background: #fff7e8;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        min-width: 0;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdff;
+      }
+
+      .card p {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 2px 8px;
+        margin-bottom: 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .tag.local {
+        color: var(--green);
+        background: #e8f7f1;
+      }
+
+      .tag.backend {
+        color: var(--amber);
+        background: #fff3df;
+      }
+
+      .tag.cloud {
+        color: var(--blue);
+        background: #eaf1ff;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .step {
+        min-width: 0;
+        padding: 14px;
+        border-left: 4px solid var(--blue);
+        background: #f8fafc;
+        border-radius: 6px;
+      }
+
+      .step:nth-child(2) {
+        border-left-color: var(--green);
+      }
+
+      .step:nth-child(3) {
+        border-left-color: var(--amber);
+      }
+
+      .step:nth-child(4) {
+        border-left-color: var(--violet);
+      }
+
+      .step:nth-child(5) {
+        border-left-color: var(--red);
+      }
+
+      .step strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .step span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .split > * {
+        min-width: 0;
+      }
+
+      ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      .note {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border: 1px solid #bfd0ea;
+        border-radius: 8px;
+        background: #f1f6ff;
+        color: #31405a;
+      }
+
+      @media (max-width: 920px) {
+        .flow,
+        .cards,
+        .steps,
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        .node {
+          min-height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Cloud Runtime real coding agent 验证链路</h1>
+      <p class="subtitle">
+        目标是用同一条镜像链路验证真实文件 CRUD：Contract Harness 或真实 Server 只切换
+        <code>ARCHON_SERVER_URL</code>，coding-agent、Cloud Runtime、工具执行和断言方式保持一致。
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>主链路</h2>
+        <div class="flow" aria-label="real coding agent validation flow">
+          <div class="node">
+            <strong>Docker Image / Contract Harness</strong>
+            <span>构建并运行镜像，发起真实 coding CRUD 场景并断言结果。</span>
+          </div>
+          <div class="node server">
+            <strong>Server</strong>
+            <span>可以是本地模拟器、后端本地 Server、云端测试 Server。</span>
+          </div>
+          <div class="node runtime">
+            <strong>Cloud Runtime</strong>
+            <span>接收 harness control，执行 Host capability。</span>
+          </div>
+          <div class="node agent">
+            <strong>coding-agent</strong>
+            <span>真实模型循环，工具副作用通过 Host capability 执行。</span>
+          </div>
+          <div class="node">
+            <strong>Host Tools</strong>
+            <span><code>workspace.*</code> 和 <code>shell.exec</code> 执行文件与 shell 验证。</span>
+          </div>
+          <div class="node server">
+            <strong>Server 收结果</strong>
+            <span>接收 session exchange，提供 shell execute 响应。</span>
+          </div>
+          <div class="node">
+            <strong>断言 / 展示成功</strong>
+            <span>E2E 校验事件、工具、文件副作用；Web UI 展示同一批事件。</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>最有价值的三种接法</h2>
+        <p class="note" style="background:#fff7e6;border-left:4px solid #ff9500;padding:8px 12px;">
+          <strong>当前状态:</strong> Docker image + 真实 coding-agent loop 的端到端断言
+          已在 mc20 重构中下线（<code>src/smoke/real-coding-e2e.ts</code> 被删除），其镜像端到端断言尚待重建。
+          现阶段本地只跑 <code>e2e:local-contract</code>(无凭据，仅校验 config + health + control_harness 边界)
+          和 <code>e2e:rewind</code>(需真实 LLM + OSS 凭据，验证 rewind 内存路径)。
+          下方卡片保留命令命名给后续重建对齐。
+        </p>
+        <div class="cards">
+          <div class="card">
+            <span class="tag local">镜像验证</span>
+            <h3>我们自己验证真实执行链路</h3>
+            <p>
+              默认命令会构建 Cloud Runtime 镜像，启动本地 contract harness，并让 coding-agent 真走 Host 工具。
+            </p>
+            <pre><code>pnpm check:cloud-runtime-local-contract-e2e</code></pre>
+          </div>
+          <div class="card">
+            <span class="tag backend">后端本地</span>
+            <h3>后端联调自己的 Server</h3>
+            <p>后端实现 control_harness / session_exchange / shell execute 后，可以直接复用镜像运行参数。</p>
+            <pre><code>ARCHON_SERVER_URL=http://127.0.0.1:8080 \
+pnpm --filter @mavis/cloud-runtime e2e:local-contract</code></pre>
+          </div>
+          <div class="card">
+            <span class="tag cloud">云端测试</span>
+            <h3>接云端或 staging Server</h3>
+            <p>链路和断言不变，用云端 Server 地址验证真实部署边界。</p>
+            <pre><code>ARCHON_SERVER_URL=https://server.example.test \
+pnpm --filter @mavis/cloud-runtime e2e:local-contract</code></pre>
+          </div>
+        </div>
+        <p class="note">
+          这里不再拆更多组合。我们固定 Cloud Runtime 和 coding-agent，只替换 Server；
+          这样后端接本地 Server 或云端 Server 的成本都是同一个变量。
+        </p>
+      </section>
+
+      <section>
+        <h2>CRUD 场景</h2>
+        <div class="steps">
+          <div class="step">
+            <strong>Create</strong>
+            <span><code>write</code> 写入 <code>src/hello.ts</code>。</span>
+          </div>
+          <div class="step">
+            <strong>Read</strong>
+            <span><code>read</code> 读回创建内容。</span>
+          </div>
+          <div class="step">
+            <strong>Update</strong>
+            <span><code>edit</code> 修改文本。</span>
+          </div>
+          <div class="step">
+            <strong>Verify</strong>
+            <span
+              ><code>grep</code> 验证更新，<code>bash</code> 验证 Server shell 边界。</span
+            >
+          </div>
+          <div class="step">
+            <strong>Cleanup</strong>
+            <span>测试夹具清理 workspace；当前没有独立的 model-visible delete tool。</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Server 需要提供的测试接口</h2>
+        <div class="split">
+          <div>
+            <h3>触发入口</h3>
+            <p>
+              Contract harness 或真实 Server 调用 Cloud Runtime 的
+              <code>/archon/internal/api/v1/harness/control_harness</code>。
+            </p>
+          </div>
+          <div>
+            <h3>回传与工具</h3>
+            <p>
+              Server 接收 <code>/archon/internal/api/v1/harness/session_exchange</code>， 并响应
+              <code>/api/v1/harness/shell/execute</code>。本地模拟器已经实现这三段。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Web UI 复用方式</h2>
+        <p>
+          Web UI 可复用同一个 coding CRUD 场景，但不直接绕过 Server 调 Cloud Runtime。
+          位置上它替代 E2E Runner：发起任务、展示 message chunk、tool call、最终结果和失败态。 API
+          E2E 先做守门；Web UI e2e 后续只复用相同的 Server URL、场景 prompt、工具事件和成功条件。
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>opencode → pi-agent 历史迁移 · 数据 / 逻辑 / 验收 全景</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --ink: #14171e;
+    --ink-soft: #3a4256;
+    --muted: #7c7a72;
+    --line: #e9e3d6;
+    --line-soft: #efeadb;
+    --primary: #2f6f5e;
+    --warn: #c97b3f;
+    --danger: #b06367;
+    --code-bg: #f0ece0;
+    --legacy: #b06367;
+    --native: #c97b3f;
+    --display: #2f6f5e;
+    --pi: #5b5a8b;
+    --record: #b8a96a;
+    --pass-bg: rgba(47, 111, 94, 0.08);
+    --pass-ink: #1f5848;
+    --warn-bg: rgba(201, 123, 63, 0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+    background:
+      radial-gradient(900px 460px at 0% 0%, rgba(47, 111, 94, 0.06), transparent 70%),
+      radial-gradient(800px 420px at 100% 8%, rgba(91, 90, 139, 0.06), transparent 70%),
+      var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 14.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 1100px; margin: 0 auto; padding: 52px 28px 80px; }
+  .eyebrow {
+    color: var(--primary);
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: clamp(32px, 5vw, 46px);
+    margin: 8px 0 14px;
+    line-height: 1.06;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: 26px;
+    margin: 0 0 12px;
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 13px;
+    margin: 14px 0 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  p { margin: 0 0 12px; color: var(--ink-soft); }
+  .lede { font-size: 16.5px; color: var(--ink-soft); max-width: 820px; }
+  code, .mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: .88em;
+  }
+  code {
+    background: var(--code-bg);
+    border-radius: 5px;
+    padding: 1px 5px;
+    color: #2a2e36;
+  }
+  section { margin-top: 44px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  }
+  pre {
+    background: #1a1a2e;
+    color: #d3d7e0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 12px 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  th { font-weight: 600; color: var(--muted); font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; border-bottom-color: var(--line); }
+  tr:last-child td { border-bottom: none; }
+  td.num, td.mono-cell { font-family: 'JetBrains Mono', monospace; color: var(--ink); }
+  td.muted { color: var(--muted); }
+
+  /* verdict */
+  .verdict-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 26px; }
+  @media (max-width: 720px) { .verdict-row { grid-template-columns: repeat(2, 1fr); } }
+  .verdict { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.025); }
+  .verdict .k { font-size: 11.5px; letter-spacing: 0.04em; color: var(--muted); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+  .verdict .v { font-family: 'DM Serif Display', serif; font-size: 26px; line-height: 1.1; color: var(--primary); margin-top: 6px; }
+  .verdict .v.warn { color: var(--warn); }
+  .verdict .v.neutral { color: var(--ink); }
+  .verdict .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; font-size: 13px; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-soft); }
+  .legend span::before { content: ""; width: 12px; height: 12px; border-radius: 3px; }
+  .legend .l-legacy::before { background: var(--legacy); }
+  .legend .l-native::before { background: var(--native); }
+  .legend .l-display::before { background: var(--display); }
+  .legend .l-pi::before { background: var(--pi); }
+  .legend .l-rec::before { background: var(--record); }
+
+  /* stratum cards */
+  .key-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+  .stratum { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; position: relative; }
+  .stratum.legacy-stratum { border-left: 4px solid var(--legacy); }
+  .stratum:not(.legacy-stratum):not(.pi-stratum) { border-left: 4px solid var(--display); }
+  .stratum.pi-stratum { border-left: 4px solid var(--pi); }
+  .stratum h3 { color: var(--ink); text-transform: none; letter-spacing: 0; font-size: 15px; font-weight: 600; margin: 8px 0 6px; }
+  .stratum .badge { position: absolute; top: 14px; right: 14px; font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; color: var(--muted); border: 1px solid var(--line); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .stratum .badge.read { color: var(--legacy); border-color: var(--legacy); background: rgba(176, 99, 103, 0.08); }
+  .stratum .badge.write { color: var(--display); border-color: var(--display); background: rgba(47, 111, 94, 0.08); }
+  .stratum .badge.fact { color: var(--pi); border-color: var(--pi); background: rgba(91, 90, 139, 0.08); }
+  .stratum .role { font-size: 12.5px; color: var(--muted); margin: 6px 0 12px; }
+  .stratum dl { margin: 0; }
+  .stratum dt { font-weight: 600; color: var(--ink); font-size: 13px; margin-top: 10px; }
+  .stratum dd { margin: 4px 0 0; font-family: 'JetBrains Mono', monospace; color: var(--ink-soft); font-size: 12.5px; }
+  @media (max-width: 820px) { .key-3 { grid-template-columns: 1fr; } }
+
+  /* lazy step */
+  .lazy-step { display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--line-soft); }
+  .lazy-step:last-child { border-bottom: none; }
+  .lazy-step .n { width: 30px; height: 30px; border-radius: 50%; background: var(--display); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .lazy-step.pi-step .n { background: var(--pi); }
+  .lazy-step h4 { margin: 4px 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .lazy-step p { margin: 2px 0; font-size: 12.5px; color: var(--ink-soft); }
+  .lazy-step p.arrow { color: var(--muted); padding-left: 14px; border-left: 2px solid var(--line); }
+
+  /* strategy pills */
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .pill.native { background: rgba(201, 123, 63, 0.14); color: var(--native); }
+  .pill.degraded { background: rgba(201, 123, 63, 0.08); color: #a3622f; }
+  .pill.seed { background: rgba(47, 111, 94, 0.12); color: var(--display); }
+  .pill.preserved { background: var(--line-soft); color: var(--muted); }
+  .pill.pass { background: var(--pass-bg); color: var(--pass-ink); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+
+  /* compat / grid 2 */
+  .compat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 820px) { .compat-grid { grid-template-columns: 1fr; } }
+
+  /* observability rows */
+  .ev-row { display: grid; grid-template-columns: 1fr 60px 64px; gap: 12px; padding: 6px 0; font-size: 13px; align-items: center; border-bottom: 1px dashed var(--line-soft); }
+  .ev-row:last-child { border-bottom: none; }
+  .ev-row .name { font-family: 'JetBrains Mono', monospace; color: var(--ink-soft); }
+  .ev-row .bar { height: 10px; background: var(--line-soft); border-radius: 5px; overflow: hidden; }
+  .ev-row .bar > div { height: 100%; background: var(--primary); border-radius: 5px; }
+  .ev-row .count { font-family: 'JetBrains Mono', monospace; text-align: right; color: var(--ink); }
+
+  .chart-wrap { position: relative; height: 280px; }
+  .footnote { color: var(--muted); font-size: 12.5px; margin-top: 16px; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 48px 0 0; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="eyebrow">Local Runtime V2 · 迁移设计与历史验收档案</div>
+  <h1>Legacy opencode → pi-agent 历史迁移</h1>
+  <div class="card">
+    <p><strong>当前维护入口：</strong><code>packages/local-runtime-v2/src/service/session-system/legacy-migration/</code> 负责三层迁移，<code>packages/local-runtime-v2/src/infra/legacy-db/legacy-opencode-migrator.ts</code> 保留历史数据兼容能力。启动与构建命令已更新到 v2，详见 <a href="legacy-opencode-migration-acceptance.md">迁移验收方案</a>。</p>
+    <p><strong>历史记录边界：</strong>以下原 PR diff、旧文件名、日期、commit、T1–T13 PASS、性能与真 LLM 数据均保留历史口径；本轮仅迁移文档和核对路径，未重新执行验收。rollback / legacy daemon 执行模式已退役，不是当前可用的 fallback；旧 host / controller 流程不得作为当前接线指引。数据只读、续聊保留、幂等与不复活已压缩历史的不变量继续保留。</p>
+  </div>
+  <p class="lede">
+    把旧 daemon 持久化的会话数据按需迁移到 clean local-runtime 的 v2 空间,并保证<strong>迁移完成后在用户视角与 native pi-agent session 完全一致</strong>。整条链路坚持<strong>三层 lazy</strong>:列会话只补 metadata、打开会话才做 display import、调 pi-history JSONL 才生成 pi-agent 格式;clean mode 下任何 status 的 opencode 源会话续聊 (POST <code>/message</code>、POST <code>/resume</code>) 与 mutation (PATCH / DELETE / archive / pin / queue) 全部按 native session 一致放行,没有 <code>read_only_legacy_session</code> 这个错误码可暴露给用户;rollback 模式下 legacy daemon 仍是 source of truth,该模式才保留 read-only 守卫。
+  </p>
+  <div class="legend">
+    <span class="l-legacy">A1 旧 daemon SQLite · 只读 · display 来源</span>
+    <span class="l-native">A2 旧 opencode native SQLite · 只读 · pi 来源</span>
+    <span class="l-display">B1 v2 展示层 · 写入(本 PR UNCHANGED)</span>
+    <span class="l-pi">B2 v2 pi-agent history · 写入(JSON 事实源)</span>
+    <span class="l-rec">B3 migration record · 双 ready flag</span>
+  </div>
+
+  <div class="verdict-row">
+    <div class="verdict"><div class="k">验收覆盖</div><div class="v">13 / 13</div><div class="meta">T1–T13 PASS · ship-ready</div></div>
+    <div class="verdict"><div class="k">续聊真 LLM</div><div class="v">2 / 2</div><div class="meta">历史外部模型（已脱敏） · turn finish_reason=stop · 18k prompt cache</div></div>
+    <div class="verdict"><div class="k">Issues</div><div class="v warn">5</div><div class="meta">3 已落地 · 2 follow-up</div></div>
+    <div class="verdict"><div class="k">用户 DB Δ</div><div class="v">0</div><div class="meta">逻辑字段零变化</div></div>
+    <div class="verdict"><div class="k">观测事件</div><div class="v neutral">7</div><div class="meta">类别覆盖 · 含 timing</div></div>
+  </div>
+</header>
+
+<section id="toc">
+  <h2>本文导航</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th style="width: 90px;">章节</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>背景与目标</td><td><a href="#background">为什么做、解决什么用户问题、约束</a></td></tr>
+        <tr><td>方案总览</td><td><a href="#overview">三段 lazy 迁移 + clean/rollback 双模 read-only 守卫,一张图抓住整体策略</a></td></tr>
+        <tr><td>方案 · 数据</td><td><a href="#storage">三层存储</a> · <a href="#dataflow">主图数据流</a> · <a href="#lazy">两条懒加载链</a> · <a href="#strategy">piHistoryStrategy 全表</a> · <a href="#converter-version">v1→v2 补偿重迁</a> · <a href="#converter-v3">v3 group-aware · compaction · sanitizer</a> · <a href="#forward-compat">双 ready flag 与幂等</a></td></tr>
+        <tr><td>方案 · 实现</td><td><a href="#pr-diff">本次 PR 改动 vs 复用</a></td></tr>
+        <tr><td>测试方案</td><td><a href="#acceptance-plan">验收方案概览(T1–T13 矩阵 + 真 LLM 续聊配置)</a></td></tr>
+        <tr><td>测试结果</td><td><a href="#acceptance-results">T1–T13 PASS 矩阵</a> · <a href="#perf">性能与观测</a> · <a href="#dist-check">启动期 dist 自检</a> · <a href="#issues">已知 issues</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="background">
+  <h2>背景与目标</h2>
+  <div class="card">
+    <h3>用户痛点</h3>
+    <p>桌面 daemon 自带的旧 opencode runtime 把会话存在两块独立 SQLite 里 —— <code>~/.minimax/sqlite.db</code> 维护 daemon 视角的 session/message,<code>~/.local/share/opencode/opencode.db</code> 是 opencode native 框架自己的 history。clean local-runtime 走 v2 spec:display 层 + pi-agent history 层 + migration record。两套存储模型不兼容,直接断档会让用户:</p>
+    <ul>
+      <li>看不到任何历史 session(列表为空);</li>
+      <li>即便能看到,点开后消息为空 / pi-history 为空;</li>
+      <li><strong>看到历史后无法继续对话</strong> —— 早期 read-only intercept 把 POST <code>/message</code> 一律 409 拦死,旧 session 被永久锁成"只能看不能聊"(本 PR 已彻底解决:clean mode 下任何 status 都可发新 turn)。</li>
+    </ul>
+    <h3>目标</h3>
+    <ol>
+      <li><strong>看得到</strong> —— 旧 daemon 持久化的会话在 clean local-runtime 下能正常列出。</li>
+      <li><strong>打得开</strong> —— 任何旧 session 都可以展开历史消息和 pi-agent history。</li>
+      <li><strong>聊得下去</strong> —— 历史会话能直接 POST <code>/message</code> 续聊,真 LLM 把迁移历史作为 prompt context。</li>
+      <li><strong>不动用户数据</strong> —— 旧 SQLite 全程 <code>readonly:true</code>,不写回。</li>
+      <li><strong>性能不退化</strong> —— 列表 / 打开会话 / pi-history 三类操作分别 lazy,避免冷启动一次性扫几百会话。</li>
+      <li><strong>失败可观测</strong> —— 任何 fallback / 失败都有结构化日志 + migration record warning,出问题能定位。</li>
+    </ol>
+    <h3>约束</h3>
+    <ul>
+      <li>不能 fork 旧 opencode native schema —— 读到什么就映射什么,跳过的部分写 warning。</li>
+      <li>v2 写入入口 <strong>UNCHANGED</strong>(<code>LiveSessionWriter</code>、<code>importDisplayMessages</code> / <code>importPiHistory</code> 一字不动),所有改动收敛在 A→B 迁移层。</li>
+      <li>read-only intercept 在 clean mode 下要完全收敛(对用户视角再无 "legacy session" 概念,全 status 的 mutation 都放行);仅在 rollback mode(legacy daemon 仍是 source of truth)保留 <code>runtime === 'opencode'</code> 守卫,防止越过 daemon 写。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="overview">
+  <h2>方案总览</h2>
+  <div class="card">
+    <h3>30 秒抓住整体</h3>
+    <p><strong>三段 lazy 迁移 + 双模 read-only intercept(clean 全放行 / rollback daemon 守门)</strong>:</p>
+    <table>
+      <thead><tr><th style="width: 110px;">阶段</th><th>触发</th><th>动作</th><th>状态字段</th></tr></thead>
+      <tbody>
+        <tr><td><strong>① metadata lazy</strong></td><td>列会话(<code>GET /agent/&lt;name&gt;/session</code>)</td><td>migrator 给每条 legacy session 写一条 migration record(只补 metadata,不 import 消息)</td><td><code>status=metadata</code></td></tr>
+        <tr><td><strong>② display lazy</strong></td><td>打开会话拉消息(<code>GET /session/&lt;sid&gt;/message</code>)</td><td>把旧 daemon SQLite 的 messages 转 v2 display 层,写 <code>display.jsonl</code>,落 <code>displayReadyAtMs</code></td><td><code>status=metadata + displayReadyAtMs</code></td></tr>
+        <tr><td><strong>③ pi-history lazy</strong></td><td>调 pi-history(JSONL debug endpoint / send 消息)</td><td>从 native opencode.db / display 反推 pi-agent 格式,写 ledger.jsonl + snapshot.json,按 7 种 strategy 选最优来源</td><td><code>status=migrated + piHistoryReadyAtMs</code></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px"><strong>read-only intercept 在用户视角已完全收敛</strong>:</p>
+    <table>
+      <thead><tr><th>运行模式</th><th>消费路径</th><th>放行条件</th><th>未放行</th></tr></thead>
+      <tbody>
+        <tr><td><code>clean</code> (默认产品链路)</td><td>POST <code>/message</code>、POST <code>/resume</code>、PATCH / DELETE / archive / pin / abort / queue / turn-diff</td><td>所有 status (<code>metadata</code> / <code>migrated</code> / <code>failed</code>) 的 opencode 源 session 全部放行</td><td>仅 <code>deleted</code> tombstone 不进入用户可见列表</td></tr>
+        <tr><td><code>rollback</code> (legacy daemon 托管)</td><td>同上</td><td>仅 native pi-agent session</td><td><code>session.runtime === 'opencode'</code> 仍由 legacy daemon 持有,所有写路径 409 <code>read_only_legacy_session</code></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px"><strong>四个不变量</strong>:</p>
+    <ul>
+      <li>用户旧 DB <code>readonly:true</code> 打开,逻辑字段 0 变化;</li>
+      <li>v2 写入入口 0 改;</li>
+      <li>失败 / fallback 全部产生结构化日志和 migration record warning;</li>
+      <li>clean mode 下不再有任何 user-reachable 路径返回 <code>read_only_legacy_session</code>;<code>failed</code> 也降级为元数据级别错误条幅,不阻塞 mutation。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="storage">
+  <h2>三层存储一眼看清</h2>
+  <div class="key-3">
+    <article class="stratum legacy-stratum">
+      <span class="badge read">read-only · legacy</span>
+      <h3>A · 旧数据 (不动)</h3>
+      <p class="role">来源,不迁不改</p>
+      <dl>
+        <dt>A1 旧 daemon SQLite</dt>
+        <dd>&lt;dataDir&gt;/sqlite.db</dd>
+        <dd style="color:var(--muted);font-family:'Outfit',sans-serif">表:sessions / session_messages / agents / session_peers</dd>
+        <dd style="color:var(--muted);font-family:'Outfit',sans-serif">session_messages.data = 整条 AgentMessage 序列化 JSON</dd>
+
+        <dt>A2 旧 opencode native SQLite</dt>
+        <dd>&lt;dataDir&gt;/opencode/{data,state}/opencode/opencode.db</dd>
+        <dd>~/.local/{share,state}/opencode/opencode.db</dd>
+        <dd style="color:var(--muted);font-family:'Outfit',sans-serif">表:session / message / part(三表关联)</dd>
+        <dd style="color:var(--muted);font-family:'Outfit',sans-serif">含 tool-call / tool-result / reasoning,是 pi-agent 真实上下文来源</dd>
+      </dl>
+    </article>
+
+    <article class="stratum">
+      <span class="badge write">write · v2 display</span>
+      <h3>B1 · 展示层 (session + message)</h3>
+      <p class="role">用户在 UI 看到的对话 · <span style="color:var(--primary);font-weight:600">本次 PR UNCHANGED · 0 byte</span></p>
+      <dl>
+        <dt>主存储 (SQLite)</dt>
+        <dd>&lt;dataDir&gt;/v2/sqlite/runtime-state.sqlite</dd>
+        <dd style="color:var(--muted);font-family:'Outfit',sans-serif">表:local_runtime_message_rows(v2 行级 · 主存储)</dd>
+
+        <dt>持久 artifact</dt>
+        <dd>&lt;dataDir&gt;/v2/sessions/&lt;sessionId&gt;/display.jsonl</dd>
+
+        <dt>写入入口</dt>
+        <dd style="font-family:'Outfit',sans-serif;color:var(--ink-soft)">LiveSessionWriter.importDisplayMessages</dd>
+
+        <dt style="color:var(--warn)">⚠ 历史背景</dt>
+        <dd style="color:var(--muted);font-family:'Outfit',sans-serif;font-size:12.5px">v1 旧表 <code>local_runtime_messages.display_messages_json</code> 是 dev baseline 早期形态,由 <code>v2-migration.ts</code> 行级化到 v2 行级表。这套演进与本次迁移正交,本 PR 不触碰。</dd>
+      </dl>
+    </article>
+
+    <article class="stratum pi-stratum">
+      <span class="badge fact">JSON · fact source</span>
+      <h3>B2 · pi-agent 上下文 (JSON 文件)</h3>
+      <p class="role">送给模型的 history · <span style="color:var(--primary);font-weight:600">写入入口 UNCHANGED</span></p>
+      <dl>
+        <dt>事实源 (append-only 事件流)</dt>
+        <dd>&lt;dataDir&gt;/v2/sessions/&lt;sessionId&gt;/ledger.jsonl</dd>
+
+        <dt>projection 快照</dt>
+        <dd>&lt;dataDir&gt;/v2/sessions/&lt;sessionId&gt;/snapshot.json</dd>
+
+        <dt>查询镜像 (sqlite projection)</dt>
+        <dd>runtime-state.sqlite · local_runtime_pi_history_rows</dd>
+
+        <dt>写入入口</dt>
+        <dd style="font-family:'Outfit',sans-serif;color:var(--ink-soft)">LiveSessionWriter.importPiHistory → ledger event message.pi_history_replaced → snapshot 重投影 → sqlite 镜像</dd>
+      </dl>
+    </article>
+  </div>
+
+  <div class="card" style="margin-top:14px;border-left:4px solid var(--warn);background:rgba(201,123,63,0.05);">
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14px;font-weight:600;margin:0 0 8px">展示层 v1+v2 两套表的来历(澄清)</h3>
+    <p style="margin:0 0 6px;font-size:13.5px">展示层确实有两个表 <code>local_runtime_messages</code>(v1 整段 JSON)和 <code>local_runtime_message_rows</code>(v2 行级),但这两套是<strong>两条独立的演进时间线</strong>叠加出来的视觉印象:</p>
+    <table>
+      <thead><tr><th>时间线</th><th>做了什么</th><th>归属</th><th>留下了什么</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>① 展示层内部行级化</strong></td>
+          <td>把 <code>display_messages_json</code> (v1 整段 JSON) 行级化到 <code>message_rows</code> (v2 一行一条)</td>
+          <td class="muted">dev baseline · <code>refactor: organize local runtime by capability</code> commit <code>b8b604fac</code></td>
+          <td>v1 表仍在 schema 里做兼容,新读写都走 v2;<code>v2-migration.ts</code> 一次性 backfill</td>
+        </tr>
+        <tr>
+          <td><strong>② 本次 opencode → pi-agent</strong></td>
+          <td>让历史 opencode session 在 pi-agent 下能继续打开 / 看历史 / 续跑</td>
+          <td style="color:var(--danger);font-weight:600">本 PR(feat/opencode-pi-runtime-migration)</td>
+          <td>migration record +2 列 ready flag · migrator 主改动 · 新 native reader · 新 debug JSONL · ensure wire 切换</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="footnote">钉死证据:本 PR diff 中 <code>persistence/sqlite-persistence.ts</code> 0 byte、<code>persistence/migration/v2-migration.ts</code> 0 byte、<code>sessions/writer/**</code> 0 byte、<code>sessions/ledger/**</code> 0 byte;<code>db.ts</code> 仅 +2 列(都在 <code>local_runtime_legacy_migrations</code> 表)。</p>
+  </div>
+</section>
+
+<section id="dataflow">
+  <h2>主图 · 数据如何从旧存储流到新分层</h2>
+  <div class="card">
+    <svg viewBox="0 0 1040 540" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;">
+      <defs>
+        <marker id="m-display" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f6f5e"/></marker>
+        <marker id="m-pi" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#5b5a8b"/></marker>
+        <marker id="m-fallback" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#c97b3f"/></marker>
+        <marker id="m-record" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#b8a96a"/></marker>
+      </defs>
+      <g font-family="Outfit" font-size="12">
+        <text x="40" y="32" font-weight="700" font-size="13" fill="#7c7a72" letter-spacing="2">USER API</text>
+        <text x="380" y="32" font-weight="700" font-size="13" fill="#7c7a72" letter-spacing="2">MIGRATOR (clean mode)</text>
+        <text x="780" y="32" font-weight="700" font-size="13" fill="#7c7a72" letter-spacing="2">DATA LAYERS</text>
+      </g>
+      <g font-family="Outfit" font-size="12">
+        <rect x="20" y="56" width="240" height="52" rx="10" fill="#ffffff" stroke="#e9e3d6"/>
+        <text x="36" y="78" font-weight="600" fill="#14171e">GET /session/:id/message</text>
+        <text x="36" y="96" fill="#7c7a72">list / read display</text>
+        <rect x="20" y="138" width="240" height="52" rx="10" fill="#ffffff" stroke="#e9e3d6"/>
+        <text x="36" y="160" font-weight="600" fill="#14171e">POST /session/:id/message</text>
+        <text x="36" y="178" fill="#7c7a72">send new turn</text>
+        <rect x="20" y="220" width="240" height="52" rx="10" fill="#ffffff" stroke="#e9e3d6"/>
+        <text x="36" y="242" font-weight="600" fill="#14171e">getPiHistory()</text>
+        <text x="36" y="260" fill="#7c7a72">internal / compaction</text>
+        <rect x="20" y="302" width="240" height="52" rx="10" fill="#ffffff" stroke="#e9e3d6" stroke-dasharray="4,3"/>
+        <text x="36" y="324" font-weight="600" fill="#14171e">GET /debug/.../pi-history.jsonl</text>
+        <text x="36" y="342" fill="#7c7a72">v3 NDJSON · 诊断用</text>
+      </g>
+      <g font-family="Outfit" font-size="12">
+        <rect x="340" y="62" width="280" height="60" rx="12" fill="#f7f5f0" stroke="#2f6f5e"/>
+        <text x="356" y="84" font-weight="600" fill="#2f6f5e">ensureLegacyMessagesMigrated</text>
+        <text x="356" y="102" fill="#7c7a72">migrateSession({includeMessages:true,</text>
+        <text x="356" y="116" fill="#7c7a72">includePiHistory:false}) · cheap</text>
+        <rect x="340" y="190" width="280" height="60" rx="12" fill="#f7f5f0" stroke="#5b5a8b"/>
+        <text x="356" y="212" font-weight="600" fill="#5b5a8b">ensureLegacyPiHistoryMigrated</text>
+        <text x="356" y="230" fill="#7c7a72">migrateSession({includeMessages:true,</text>
+        <text x="356" y="244" fill="#7c7a72">includePiHistory:true}) · heavy</text>
+        <rect x="340" y="290" width="280" height="220" rx="14" fill="#fffaf2" stroke="#e9e3d6"/>
+        <text x="356" y="312" font-weight="700" fill="#14171e">LegacyOpencodeMigrator</text>
+        <text x="356" y="328" fill="#7c7a72">migrateSession() core</text>
+        <line x1="356" y1="338" x2="604" y2="338" stroke="#e9e3d6"/>
+        <text x="356" y="358" font-weight="600" fill="#2f6f5e">① backfillSessionRecordToLedger</text>
+        <text x="356" y="373" fill="#7c7a72">写 metadata 到 ledger,markProjectionWatermark</text>
+        <text x="356" y="396" font-weight="600" fill="#5b5a8b">② buildNativePiHistory(only if pi)</text>
+        <text x="356" y="411" fill="#7c7a72">扫 4 个 opencode.db candidate · session/message/part</text>
+        <text x="356" y="434" font-weight="600" fill="#c97b3f">③ fallback display-seed-*(native missing)</text>
+        <text x="356" y="449" fill="#7c7a72">用已 import 的 display 摘要为 seed text</text>
+        <text x="356" y="472" font-weight="600" fill="#b8a96a">④ upsert migration record</text>
+        <text x="356" y="487" fill="#7c7a72">写 display_ready_at_ms / pi_history_ready_at_ms</text>
+        <text x="356" y="503" fill="#7c7a72">幂等:再次进 ① 看 ready flag 决定 short-circuit</text>
+      </g>
+      <g font-family="Outfit" font-size="12">
+        <rect x="700" y="56" width="320" height="78" rx="12" fill="#fff" stroke="#b06367"/>
+        <text x="716" y="78" font-weight="700" fill="#b06367">A1 旧 daemon SQLite(read-only)</text>
+        <text x="716" y="96" fill="#7c7a72">&lt;dataDir&gt;/sqlite.db</text>
+        <text x="716" y="112" fill="#7c7a72">表:sessions / session_messages / agents</text>
+        <text x="716" y="128" fill="#7c7a72">session_messages.data = AgentMessage JSON</text>
+        <rect x="700" y="146" width="320" height="98" rx="12" fill="#fff" stroke="#c97b3f"/>
+        <text x="716" y="168" font-weight="700" fill="#c97b3f">A2 旧 opencode native SQLite(read-only)</text>
+        <text x="716" y="186" fill="#7c7a72">&lt;dataDir&gt;/opencode/{data,state}/opencode/opencode.db</text>
+        <text x="716" y="202" fill="#7c7a72">~/.local/{share,state}/opencode/opencode.db</text>
+        <text x="716" y="220" fill="#7c7a72">表:session / message / part</text>
+        <text x="716" y="236" fill="#7c7a72">link by parent_id = legacy_framework_session_id</text>
+        <rect x="700" y="260" width="320" height="98" rx="12" fill="#fff" stroke="#2f6f5e"/>
+        <text x="716" y="282" font-weight="700" fill="#2f6f5e">B1 v2 展示层(write target)</text>
+        <text x="716" y="300" fill="#7c7a72">v2/sqlite/runtime-state.sqlite</text>
+        <text x="716" y="316" fill="#7c7a72">  · local_runtime_message_rows(v2 行级)</text>
+        <text x="716" y="332" fill="#7c7a72">v2/sessions/&lt;id&gt;/display.jsonl</text>
+        <text x="716" y="348" fill="#c97b3f" font-size="10" font-style="italic">  ↳ v1 旧表 local_runtime_messages 仅历史兼容(非本 PR 触碰)</text>
+        <rect x="700" y="370" width="320" height="118" rx="12" fill="#fff" stroke="#5b5a8b"/>
+        <text x="716" y="392" font-weight="700" fill="#5b5a8b">B2 v2 pi-agent history(JSON fact source)</text>
+        <text x="716" y="410" fill="#7c7a72">v2/sessions/&lt;id&gt;/ledger.jsonl · 事件流</text>
+        <text x="716" y="426" fill="#7c7a72">v2/sessions/&lt;id&gt;/snapshot.json · projection</text>
+        <text x="716" y="442" fill="#7c7a72">runtime-state.sqlite · local_runtime_pi_history_rows</text>
+        <text x="716" y="458" fill="#7c7a72">事件:message.pi_history_replaced</text>
+        <text x="716" y="474" fill="#7c7a72">写入:LiveSessionWriter.importPiHistory()</text>
+        <rect x="700" y="498" width="320" height="38" rx="10" fill="#fff" stroke="#b8a96a"/>
+        <text x="716" y="520" font-weight="700" fill="#a3962a">B3 migration record</text>
+        <text x="850" y="520" fill="#7c7a72">runtime-state.sqlite · local_runtime_legacy_migrations</text>
+      </g>
+      <line x1="260" y1="82" x2="340" y2="92" stroke="#2f6f5e" stroke-width="1.6" marker-end="url(#m-display)"/>
+      <line x1="260" y1="164" x2="340" y2="220" stroke="#5b5a8b" stroke-width="1.6" marker-end="url(#m-pi)"/>
+      <line x1="260" y1="246" x2="340" y2="220" stroke="#5b5a8b" stroke-width="1.6" marker-end="url(#m-pi)"/>
+      <line x1="260" y1="328" x2="340" y2="220" stroke="#5b5a8b" stroke-width="1.6" stroke-dasharray="4,3" marker-end="url(#m-pi)"/>
+      <line x1="480" y1="122" x2="480" y2="290" stroke="#2f6f5e" stroke-width="1.6" marker-end="url(#m-display)"/>
+      <line x1="500" y1="250" x2="500" y2="290" stroke="#5b5a8b" stroke-width="1.6" marker-end="url(#m-pi)"/>
+      <line x1="620" y1="360" x2="700" y2="100" stroke="#2f6f5e" stroke-width="1.4" marker-end="url(#m-display)"/>
+      <line x1="620" y1="400" x2="700" y2="200" stroke="#5b5a8b" stroke-width="1.4" marker-end="url(#m-pi)"/>
+      <line x1="620" y1="370" x2="700" y2="304" stroke="#2f6f5e" stroke-width="1.6" marker-end="url(#m-display)"/>
+      <line x1="620" y1="412" x2="700" y2="416" stroke="#5b5a8b" stroke-width="1.6" marker-end="url(#m-pi)"/>
+      <line x1="620" y1="445" x2="700" y2="430" stroke="#c97b3f" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#m-fallback)"/>
+      <line x1="620" y1="485" x2="700" y2="513" stroke="#b8a96a" stroke-width="1.6" marker-end="url(#m-record)"/>
+    </svg>
+    <p class="footnote">实线 = 主路径 · 虚线 = fallback / 诊断路径。橙色虚线表示 native 缺失时,migrator 用已 import 的 B1 display 当 seed 写回 B2。debug JSONL 虚线表示是只读 export,不触发新写。</p>
+  </div>
+</section>
+
+<section id="lazy">
+  <h2>两条懒加载链 verbatim 拆解</h2>
+  <div class="card" style="margin-bottom:14px;border-left:4px solid var(--display);">
+    <h3 style="color:var(--display);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:0 0 12px;">链 1 · display only(打开 / list / read)</h3>
+    <div class="lazy-step"><div class="n">1</div><div>
+      <h4>UI 调 <code>GET /session/:id/message</code></h4>
+      <p>routes/sessions.ts list display message,不进 openLocalMessageStream → 不触发 pi history 迁移</p>
+      <p class="arrow">→ host.getDisplayMessages / listDisplayMessages</p>
+    </div></div>
+    <div class="lazy-step"><div class="n">2</div><div>
+      <h4>host.ensureLegacyMessagesMigrated(sessionId)</h4>
+      <p>查 migration record · displayReadyAtMs 已 set → short-circuit return</p>
+      <p class="arrow">→ legacyMigrator.ensureMessagesMigrated</p>
+    </div></div>
+    <div class="lazy-step"><div class="n">3</div><div>
+      <h4>migrateSession({ includeMessages: true, includePiHistory: false })</h4>
+      <p>只打开 A1(旧 daemon sqlite.db),scanMessages 拿 session_messages.data;<strong>不打开 A2 opencode.db</strong></p>
+      <p class="arrow">→ messageStore.importDisplayMessages → B1 sqlite + display.jsonl</p>
+    </div></div>
+    <div class="lazy-step"><div class="n">4</div><div>
+      <h4>upsert record · 只 set display_ready_at_ms</h4>
+      <p>pi_history_ready_at_ms 留 null · piHistoryStrategy="deferred" · status="metadata"</p>
+      <p class="arrow">→ 下次 send 仍会进 pi 迁移</p>
+    </div></div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--pi);">
+    <h3 style="color:var(--pi);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:0 0 12px;">链 2 · pi history(send / getPiHistory / debug JSONL)</h3>
+    <div class="lazy-step pi-step"><div class="n">1</div><div>
+      <h4><code>POST /session/:id/message</code> · routes/sessions.ts:549</h4>
+      <p>openLocalMessageStream 在拼 messages 之后、starting turn 之前 hook</p>
+      <p class="arrow">→ ctx.ensureLegacyPiHistoryMigrated(session.sessionId)</p>
+    </div></div>
+    <div class="lazy-step pi-step"><div class="n">2</div><div>
+      <h4>host.ensureLegacyPiHistoryMigrated</h4>
+      <p>查 record · piHistoryReadyAtMs 已 set 直接 return · 否则进 migrator</p>
+      <p class="arrow">→ legacyMigrator.ensurePiHistoryMigrated</p>
+    </div></div>
+    <div class="lazy-step pi-step"><div class="n">3</div><div>
+      <h4>migrateSession({ includeMessages: true, includePiHistory: true })</h4>
+      <p>同步把 display 也补齐(因为 fallback 链依赖 display seed)· 然后:</p>
+      <p class="arrow">a. 先 buildNativePiHistory → 扫 4 个 opencode.db candidate</p>
+      <p class="arrow">b. 找到 native 就 convert:user / assistant / tool 三 role + reasoning / text / tool-call / tool-result 四种 block</p>
+      <p class="arrow">c. 找不到或 convert 失败 → fallback display-seed-* 用 B1 已有 display</p>
+    </div></div>
+    <div class="lazy-step pi-step"><div class="n">4</div><div>
+      <h4>writer.importPiHistory(sessionId, messages)</h4>
+      <p>append ledger.jsonl 一条 message.pi_history_replaced 事件 → snapshot 重投影 → local_runtime_pi_history_rows 镜像</p>
+    </div></div>
+    <div class="lazy-step pi-step"><div class="n">5</div><div>
+      <h4>upsert record · set 双 ready flag + strategy</h4>
+      <p>status="migrated" · displayReadyAtMs + piHistoryReadyAtMs 同时写 · piHistoryStrategy 标 native-* / display-seed-*</p>
+      <p class="arrow">→ pi seed text 含 marker <code>migrationSeedId: legacy-opencode:&lt;sessionId&gt;</code> 防重复 seed</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="strategy">
+  <h2>piHistoryStrategy 全表</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>strategy</th><th>触发条件</th><th>结果</th><th>warning</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill native">native-full</span></td><td>A2 opencode.db 找到 native session + 全 part 转换无 loss</td><td>逐条 PiAgentMessage(user / assistant + content blocks / tool result)</td><td>—</td></tr>
+        <tr><td><span class="pill degraded">native-degraded</span></td><td>A2 找到但部分 part 损失(empty / unknownRole / unsupportedPart / pending tool interrupted / parseLoss)</td><td>已转换部分 + report.losses 计数</td><td><code>legacy_native_{empty-messages,interrupted-tools,...}:N</code></td></tr>
+        <tr><td><span class="pill seed">display-seed-full</span></td><td>A2 缺失 / 不可读 · 对话 ≤ 80 条 · 总字符 ≤ 160k</td><td>用全部 display 拼成单条 user seed 写入</td><td><code>legacy_native_missing_or_unreadable</code></td></tr>
+        <tr><td><span class="pill seed">display-seed-expanded</span></td><td>A2 缺失 · 81–240 条 / ≤ 240k 字符</td><td>保留最近 240 条 conversational</td><td><code>legacy_native_missing_or_unreadable</code></td></tr>
+        <tr><td><span class="pill seed">display-seed-transcript-asset</span></td><td>A2 缺失 · &gt; 240 条或 &gt; 240k 字符</td><td>最近 60 条 + 完整 transcript 转 markdown asset(上限 5M 字符)</td><td><code>legacy_pi_history_degraded_to_transcript_asset</code></td></tr>
+        <tr><td><span class="pill preserved">existing-seed-preserved</span></td><td>B2 已有 marker <code>migrationSeedId: legacy-opencode:&lt;id&gt;</code></td><td>直接 return,不重复 seed</td><td>—</td></tr>
+        <tr><td><span class="pill preserved">deferred</span></td><td>链 1 触发,只迁了 display</td><td>pi_history_ready_at_ms 留 null</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="converter-version">
+  <h2>native 转换器版本 · v1 → v2 补偿重迁</h2>
+  <div class="card" style="border-left:4px solid var(--danger);background:rgba(176,99,103,0.04);">
+    <h3 style="color:var(--danger);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:0 0 12px;">背景 · 为什么需要版本号</h3>
+    <p>首版 <code>convertNativeMessagesToPiHistory</code>(v1) 把 opencode native 数据转成 pi-agent history 时,**发出的 block/role 类型不是 <code>@earendil-works/pi-agent-core</code> 认得的形状**,pi-agent runtime 在 replay 时会**静默丢弃**:</p>
+    <table style="margin-top:8px">
+      <thead><tr><th>字段位置</th><th>v1 输出(错)</th><th>v2 输出(对)</th><th>pi-agent 定义</th></tr></thead>
+      <tbody>
+        <tr><td>reasoning block</td><td class="mono-cell"><code>{type: 'reasoning', text}</code></td><td class="mono-cell"><code>{type: 'thinking', thinking}</code></td><td class="muted">ThinkingContent</td></tr>
+        <tr><td>tool-call block</td><td class="mono-cell"><code>{type: 'tool-call', toolCallId, toolName, args}</code></td><td class="mono-cell"><code>{type: 'toolCall', id, name, arguments}</code></td><td class="muted">ToolCall</td></tr>
+        <tr><td>tool-result message</td><td class="mono-cell"><code>role: 'tool'</code></td><td class="mono-cell"><code>role: 'toolResult'</code></td><td class="muted">ToolResultMessage</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px">v1 还漏了 opencode-native 的三处字段名映射,导致 <strong>tool call / tool result 完全没进 pi-history</strong>(只剩 text/reasoning):</p>
+    <ul>
+      <li><code>part.data.tool</code> — opencode 的 tool 名字段(v1 只查 <code>toolName</code> / <code>tool_name</code> / <code>name</code>);</li>
+      <li><code>part.data.callID</code> — opencode 的 call id(v1 只查 <code>toolCallID</code> / <code>tool_call_id</code> / <code>toolCallId</code>);</li>
+      <li><code>part.data.state.{status,input,output,error}</code> — opencode 把 <em>call + result 合成一个 <code>type:'tool'</code> part</em>,状态和结果都嵌在 <code>state</code> 里;v1 分类逻辑要求 <code>type</code> 里含 <code>call</code> 或 <code>result</code>,单个 <code>tool</code> 直接落到 <code>unsupportedParts</code> 被丢。</li>
+    </ul>
+    <p>叠加效应:所有 <code>native-*</code> 策略下迁移的 session,replay 时 assistant 消息只有文字,原有的所有 tool 调用/结果都消失。用户视角:历史看得到但工具轨迹丢了、继续对话 LLM 拿不到之前的工具上下文。</p>
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:16px 0 10px;">修复 · v2 converter + <code>piHistoryConverterVersion</code> 版本号</h3>
+    <table>
+      <thead><tr><th style="width: 40%">改动</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>NATIVE_PI_HISTORY_CONVERTER_VERSION = 2</code></td><td>写在 <code>legacy-opencode-native-conversion.ts</code>,converter 输出 shape 变更时必 bump。</td></tr>
+        <tr><td>migration record 新增字段 <code>pi_history_converter_version</code></td><td>schema 加一列 INTEGER,只对 <code>native-*</code> 策略写入;其它策略 (display-seed / existing-seed-preserved / deferred) 不写(它们的 shape 未变)。</td></tr>
+        <tr><td><code>isLegacyPiHistoryReady</code> 新增 stale-check</td><td>命中 <code>piHistoryStrategy.startsWith('native-') && (converterVersion ?? 0) &lt; CURRENT</code> 时,直接返回 <code>false</code> — 下次 <code>ensurePiHistoryMigrated</code> 就会重跑 <code>migrateSession</code>。</td></tr>
+        <tr><td><code>writer.importPiHistory</code> 全量替换语义</td><td>存量 rows 会被新版转换结果完整覆盖(ledger 一条 <code>message.pi_history_replaced</code> 事件 + snapshot 重投影),旧的错 shape 数据 clean 落到 tombstone,无需手 delete。</td></tr>
+        <tr><td>opencode-native 字段映射修正</td><td>store 层新增 <code>readNativeToolState</code>(读 <code>part.data.state</code>) + <code>readNativeTimestamp</code>(覆盖 <code>time.created</code> / <code>time_created</code> / <code>time_updated</code>);<code>tool</code>/<code>callID</code> 列进入 toolName/toolCallId 读取候选。ORDER BY 也补 <code>time_created</code> 列,历史消息按时间稳定排序。</td></tr>
+        <tr><td>opencode 组合 <code>type:'tool'</code> part 拆分</td><td>converter 把一条 opencode tool part 拆成两条 pi-agent 消息:assistant.content 里加一个 <code>toolCall</code> block,后面 append 一条 <code>role:'toolResult'</code> 消息(<code>state.output</code> / <code>state.error</code> 做正文,<code>state.status</code> 判 <code>isError</code>)。</td></tr>
+        <tr><td>opencode scaffolding part 白名单</td><td><code>step-start</code> / <code>step-finish</code> / <code>snapshot</code> / <code>patch</code> / <code>compaction</code> / <code>file</code> 走 skip,不再计入 <code>losses.unsupportedParts</code>,避免每轮都误报 <code>native-degraded</code>。</td></tr>
+      </tbody>
+    </table>
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:16px 0 10px;">用户视角 · 补偿路径</h3>
+    <ol>
+      <li>用户重启 local-runtime → schema 自升级(<code>ALTER TABLE ... ADD COLUMN pi_history_converter_version</code>,幂等)。</li>
+      <li>旧 <code>status='migrated'</code> 记录字段是 NULL(&lt; 2) → <code>isLegacyPiHistoryReady</code> 判它 stale。</li>
+      <li>用户在 UI 里打开对话看历史 → 只走 display 路径,不动 pi-history,秒开(display 已经 ready)。</li>
+      <li>用户发新消息 → <code>POST /session/&lt;id&gt;/message</code> → <code>openLocalMessageStream</code> → <code>ensureLegacyPiHistoryMigrated</code> → 命中 stale → 用 v2 converter 重新扫 native → <code>importPiHistory</code> 覆盖旧 rows → 版本号写 2 → 继续 turn。用户完全无感,原有 tool 上下文完整回到 prompt。</li>
+      <li>无 native DB(A2 缺失)的 session 用的是 <code>display-seed-*</code> 策略,版本号本来就不写,不受影响。</li>
+    </ol>
+    <p class="footnote">回归覆盖:<code>test/unit/legacy-opencode-native-conversion.test.ts</code>(shape 单元)+ <code>test/unit/legacy-opencode-native-migration-shape.test.ts</code>(fresh 迁移 · stale 补偿 · idempotent 三条路径,每条走真 SQLite fixture)。</p>
+  </div>
+</section>
+
+<section id="converter-v3">
+  <h2>v3 · group-aware 迁移 + opencode compaction 截断 + Messages sanitizer</h2>
+  <div class="card" style="border-left:4px solid var(--danger);background:rgba(176,99,103,0.04);">
+    <h3 style="color:var(--danger);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:0 0 12px;">背景 · v2 之后暴露出的两条 P1</h3>
+    <p><strong>P1-1(Windows 用户 <code>mvs_89d1aa6e9c8f45ada26b23f8d3dd5333</code>)</strong>:v2 迁移写入的 pi-history,每个 <code>toolResult.timestamp</code> 是工具**完成时间**(比如 bash 跑 5.5s)。round-4 加的 <code>sort by message.timestamp</code> 是按<strong>拆分后每一行</strong>排,长跑工具的 toolResult 排在真实完成时刻;如果那期间用户已发下一条(<code>ask_user</code> questionnaire 回填等),这条 user 就会被塞到 assistant(toolCall) 和它的 toolResult 中间,Messages-compatible endpoint 直接 400 <code>messages: tool_use ids were found without tool_result blocks immediately after</code>,后续所有 turn 都 crash。</p>
+    <p><strong>P1-2(<code>mvs_bf6ea07bd2144458bc734a6b6305c632</code>)</strong>:opencode session 内部触发过 compaction(有 <code>tail_start_id</code>),但 v2 converter 把 <code>type:'compaction'</code> 当 scaffolding 直接 skip,pre-compaction 的所有消息被平铺进 pi-history,context window 直接爆掉。</p>
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:16px 0 10px;">四条主线</h3>
+    <table>
+      <thead><tr><th style="width: 22%">主线</th><th>目的</th><th>关键交付物</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>M0</strong> · opencode compaction 截断</td>
+          <td>镜像 opencode <code>filterCompacted</code>:找最后一次带 <code>tail_start_id</code> 的 compaction,只保留 <code>[compaction-user + summary + tail + 后续]</code>;pre-compaction 全部丢。同时修 fresh 首次迁移的爆炸问题。</td>
+          <td><code>filterCompactedNativeMessages</code>(<code>legacy-opencode-native-compaction-filter.ts</code>,verbatim mirror);converter 入口先跑此步。CompactionPart 转成 <code>{role:'user', text:'What did we do so far?'}</code>(镜像 opencode <code>toModelMessages</code>)。</td>
+        </tr>
+        <tr>
+          <td><strong>M1</strong> · group-aware 排序</td>
+          <td>按 <strong>opencode message-level <code>time_created</code></strong>(group.leaderTimestamp)排序,而不是拆分后每行的 <code>.timestamp</code>。toolResult 保留真实完成时间戳(不动 semantics,只不参与排序)。</td>
+          <td>新增 <code>PiHistoryGroup { leaderTimestamp, messages, kind }</code>;converter 输出 <code>groups: PiHistoryGroup[]</code> 替代 <code>messages: PiAgentMessage[]</code>;migrator 侧新增 <code>regroupPiAgentMessages</code> 把 preserved-continuation 也 group 化,然后按 leaderTimestamp 稳定合并。</td>
+        </tr>
+        <tr>
+          <td><strong>M2</strong> · Messages sanitizer</td>
+          <td>迁移写入前对<strong>只对 legacy 段</strong>跑 sanity check,剪裁孤儿 tool_use / 孤儿 tool_result / 顺序颠倒。<strong>不动 pi-agent 侧数据</strong>(pi-agent runtime 自己的 shape 由它自己负责)。</td>
+          <td>新增 <code>packages/local-runtime/src/persistence/pi-history-sanitizer.ts</code>,5 条规则(R1-R5)+ stats + warnings。签名通用,当前只在 migrator 里对 legacy 段 apply。</td>
+        </tr>
+        <tr>
+          <td><strong>M3</strong> · 版本 bump v3 + 二元 v3 upgrade</td>
+          <td><code>NATIVE_PI_HISTORY_CONVERTER_VERSION 2 → 3</code>。v2 迁移过的 session 下次 <code>ensurePiHistoryMigrated</code> 触发时:<strong>场景 A</strong>(legacyRowsNow &gt; 0)完整重迁 legacy;<strong>场景 B</strong>(legacyRowsNow == 0,pi-agent 已 compact)no-op stamp v3,<strong>不复活</strong>老内容;<strong>场景 D</strong>(空)走 fresh 路径。</td>
+          <td><code>ensurePiHistoryMigrated</code> 加二元判定 + scenario-B fast path;不引入 marker 字段,timestamp watermark 天然就是 provenance line。</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:16px 0 10px;">核心不变量</h3>
+    <ul>
+      <li><strong>不复活被 pi-agent compaction 卷走的 legacy 内容</strong>(scenario B):迁移层只对<strong>自己搬进来的数据</strong>负责。</li>
+      <li><strong>不覆盖 <code>timestamp &gt; migratedAtMs</code> 的用户续聊 rows</strong>:watermark filter 硬保证。</li>
+      <li><strong>sanitizer scope 严格限定 legacy 段</strong>:helper 签名通用,但当前 caller(<code>buildPiHistory</code>)只把 <code>native.groups.flatMap(...)</code> 塞进去,<code>preservedContinuation</code> 完全不被 sanitize。</li>
+      <li><strong>M0 filterCompactedNativeMessages 的 reorder 段 verbatim 镜像 opencode</strong>:任何改动都是 reinvention,禁止。</li>
+      <li><strong>Native segment 顺序在 merge 后严格保留 M0 输出</strong>(round-5 review-1 修正):<code>sanitizedNativeGroups</code> <strong>不</strong>参与 <code>sort by leaderTimestamp</code>,只对 <code>preservedGroups</code> 内部排序,两段简单 concat 依赖 watermark 分界。否则 opencode <code>filterCompacted</code> 的 replay 顺序(tail 时间戳老于 compaction/summary)会被撤销。</li>
+      <li><strong>Fail-closed on stale-native-upgrade with missing source</strong>(round-5 review-2 修正):stale v2 record + 有 legacy row + 无 opencode.db 时 <strong>绝不</strong> fallback 到 display-seed(否则 <code>isLegacyPiHistoryConverterCurrent</code> 对非 native 策略永远返回 true,损坏行永久固化)。改为 no-op 返回 <code>messages: []</code> + <code>failClosed: true</code>,<code>migrateSession</code> 保留 record 的 <code>migratedAtMs / strategy / converterVersion / status / piHistoryReadyAtMs</code>,只 merge warnings + report,让 opencode.db 恢复后能干净重跑。</li>
+    </ul>
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;margin:16px 0 10px;">用户视角 · v2 → v3</h3>
+    <table>
+      <thead><tr><th>用户状态</th><th>行为</th><th>结果</th></tr></thead>
+      <tbody>
+        <tr><td>v2 迁过 · 没聊过</td><td>场景 A · 完整 v3 重迁,legacy 段修复</td><td>Messages-compatible 400 消失;若之前 opencode 内 compact 过,pi-history 大幅缩短(正常)。</td></tr>
+        <tr><td>v2 迁过 · 聊了几轮 · 无 pi-agent compaction</td><td>场景 A · legacy 修复 + 续聊完整保留</td><td>无感,续聊完整;新 turn 不再 400。</td></tr>
+        <tr><td>v2 迁过 · pi-agent 已 compact</td><td>场景 B · no-op stamp v3</td><td>完全不动 pi-history,只在 record 上打 <code>legacy_v3_skipped_post_pi_compaction</code> warning。</td></tr>
+        <tr><td>从没聊过 · pi-history 为空</td><td>场景 D · fresh 重迁</td><td>无感;直接进 v3 流程。</td></tr>
+        <tr><td>v2 迁过 · opencode.db 缺失(用户清 legacy 缓存 / 磁盘异常)</td><td><strong>fail-closed</strong>:pi-history 完全不动,record identity 全部保留,写 <code>legacy_v3_upgrade_fail_closed:&lt;reason&gt;:&lt;count&gt;</code> warning</td><td>用户可能看到旧的 400(pi-history 依旧是 v2 broken shape),但**没有二次损坏**;补回 opencode.db 后下次访问自动进场景 A 修复。</td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">回归覆盖:
+      <code>test/unit/legacy-opencode-native-conversion.test.ts</code>(groups + CompactionPart)、
+      <code>test/unit/legacy-opencode-native-compaction-filter.test.ts</code>(M0 verbatim + 各种 edge cases)、
+      <code>test/unit/legacy-opencode-native-migration-merge.test.ts</code>(Windows 场景 · sanitizer scope)、
+      <code>test/unit/pi-history-sanitizer.test.ts</code>(5 条规则 + 幂等)、
+      <code>test/unit/legacy-opencode-v3-upgrade.test.ts</code>(场景 A/B/D + 幂等 + fail-closed on native missing + fail-closed recovery + compaction timing 假设固定)、
+      <code>test/e2e/legacy-opencode-native-migration.e2e.test.ts</code>(M0 · Windows shape · scenario B 三条 E2E fixture)。
+    </p>
+  </div>
+</section>
+
+<section id="forward-compat">
+  <h2>向前兼容 · 双 ready flag 与幂等</h2>
+  <div class="compat-grid">
+    <article class="card">
+      <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;margin:0 0 8px">schema 演进(db.ts addColumn IF NOT EXISTS)</h3>
+      <table>
+        <thead><tr><th>字段</th><th>来源</th></tr></thead>
+        <tbody>
+          <tr><td><code>ledger_imported_at_ms</code></td><td class="muted">既有(v2 ledger 化)</td></tr>
+          <tr><td><code>projection_ready_at_ms</code></td><td class="muted">既有(sqlite projection)</td></tr>
+          <tr><td><code>display_ready_at_ms</code></td><td style="color:var(--warn);font-weight:600">本次新加</td></tr>
+          <tr><td><code>pi_history_ready_at_ms</code></td><td style="color:var(--warn);font-weight:600">本次新加</td></tr>
+        </tbody>
+      </table>
+      <p class="footnote">addColumn 用 IF NOT EXISTS,旧 record 不丢。</p>
+    </article>
+    <article class="card">
+      <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;margin:0 0 8px">ready flag 兼容路径 + 幂等防线</h3>
+      <table>
+        <thead><tr><th>helper</th><th>判 true 的条件</th></tr></thead>
+        <tbody>
+          <tr><td><code>isLegacyDisplayReady</code></td><td class="mono-cell">displayReadyAtMs 有 · 或 projectionReadyAtMs 有(旧 record 兜底)</td></tr>
+          <tr><td><code>isLegacyPiHistoryReady</code></td><td class="mono-cell">piHistoryReadyAtMs 有 · 或 status=migrated && ledgerImportedAtMs && projectionReadyAtMs 都齐(旧 record 兜底)</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:12.5px;margin-top:8px">升级前已 migrated 的旧 session 重启后被识别为"display + pi 都 ready",不会重做迁移;新 session 走双 flag 严格区分。</p>
+      <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;margin:14px 0 6px">幂等 · 4 道防线</h3>
+      <ol style="margin:0;padding-left:18px;color:var(--ink-soft);font-size:12.5px">
+        <li><strong>record ready flag short-circuit</strong> · 进入 migrateSession 立即查 record,需要的 flag 齐就 return</li>
+        <li><strong>existingDisplayMessages 优先</strong> · preferExistingDisplayMessages 按 msg_id 比对,已编辑不会被覆盖</li>
+        <li><strong>pi seed marker</strong> · hasPiSeedMarker 扫 existingPiHistory 找 marker,命中 → existing-seed-preserved</li>
+        <li><strong>ledger watermark</strong> · backfillSessionRecordToLedger 在 withSessionWriteLock 内 markProjectionWatermark</li>
+      </ol>
+    </article>
+  </div>
+</section>
+
+<section id="pr-diff">
+  <h2>本次 PR 改动 vs 复用 · 一表说清</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>层 / 文件</th><th>本次 PR 行为</th><th>证据</th></tr></thead>
+      <tbody>
+        <tr><td><strong>B1 展示层 — runtime-state.sqlite display 表</strong></td><td style="color:var(--primary);font-weight:600">UNCHANGED(复用)</td><td class="mono-cell">persistence/sqlite-persistence.ts 0 byte · sessions/writer/** 0 byte · sessions/ledger/** 0 byte</td></tr>
+        <tr><td><strong>B1 展示层 — v2/sessions/&lt;id&gt;/display.jsonl</strong></td><td style="color:var(--primary);font-weight:600">UNCHANGED(复用)</td><td class="mono-cell">v2-session-artifacts.ts 0 byte · LiveSessionWriter.importDisplayMessages 0 byte</td></tr>
+        <tr><td><strong>B1 展示层 — read API(<code>GET /session/:id/message</code>)</strong></td><td style="color:var(--primary);font-weight:600">UNCHANGED(复用)</td><td class="mono-cell">routes/sessions.ts list display 调用链 0 改;getDisplayMessages 仍调既有 ensureLegacyMessagesMigrated</td></tr>
+        <tr><td><strong>B2 pi-agent ledger.jsonl / snapshot.json</strong></td><td style="color:var(--primary);font-weight:600">写入入口 UNCHANGED</td><td class="mono-cell">LiveSessionWriter.importPiHistory / message.pi_history_replaced event 0 改</td></tr>
+        <tr><td><strong>B3 migration record schema</strong></td><td style="color:var(--warn);font-weight:600">+2 列(display_ready_at_ms, pi_history_ready_at_ms)</td><td class="mono-cell">db.ts:529-530 addColumn · legacy-migration-store record 字段透传 · host-support.ts metadata API 透传</td></tr>
+        <tr><td><strong>A→B 迁移层 migrator</strong></td><td style="color:var(--danger);font-weight:600">主改动 · net +481 行</td><td class="mono-cell">legacy-opencode-migrator.ts:display/pi 拆分、native conversion、fallback strategy(<code>git stat: +520 -39</code>)</td></tr>
+        <tr><td><strong>A2 opencode native reader</strong></td><td style="color:var(--danger);font-weight:600">NEW +328 行</td><td class="mono-cell">legacy-opencode-store.ts 新增 inspectOpenCodeNativeSources / readNativeMessagesFromDb / nativeMessageFromRow / nativePartFromRow</td></tr>
+        <tr><td><strong>API ensure wire</strong></td><td style="color:var(--warn);font-weight:600">+1 入口 / 改 1 调用方</td><td class="mono-cell">host.ts:1124 加 ensureLegacyPiHistoryMigrated · routes/sessions.ts:549 send 流改成调它</td></tr>
+        <tr><td><strong>Debug NDJSON 导出</strong></td><td style="color:var(--danger);font-weight:600">NEW endpoint</td><td class="mono-cell">host.ts:970 routeDebugPiHistoryJsonl · <code>GET /mavis/api/debug/session/:id/pi-history.jsonl</code> · v3 header + 每行一条 message</td></tr>
+        <tr><td><strong>Acceptance launcher</strong></td><td style="color:var(--danger);font-weight:600">NEW + dist 自检</td><td class="mono-cell">test/scripts/legacy-opencode-migration-launcher.mjs · 启动前 stat src/** vs dist/** mtime,src 新于 dist ≥ 1s 即 exit 2 + 打印 rebuild 指令</td></tr>
+        <tr><td><strong>Read-only intercept 守卫(clean mode)</strong></td><td style="color:var(--primary);font-weight:600">守卫语义全部收敛<br/>(commit <code>1d618c7a5</code> + <code>6fea081e2</code>)</td><td class="mono-cell"><code>api/host-legacy-helpers.ts:isReadOnlyLegacySession</code> 退化为只检查 <code>session.runtime === 'opencode'</code>(rollback mode legacy daemon 托管);clean mode 下 migration record <code>status</code> 不再决定可写性。<code>api/host-support.ts:resolveLocalSessionById</code> 对 <code>status === 'failed'</code> 不再抛 <code>LegacyOpencodeMigrationError</code>,改为返回规范化后的本地 pi-agent 行,PATCH / DELETE / archive / pin / queue 直接走 controller。<code>api/routes/sessions.ts:openLocalMessageStream</code> 把 <code>ensureLegacyPiHistoryMigrated</code> 用 try/catch 包起来,backfill 失败不阻塞新 turn。删除 <code>LegacyReadOnlyIntent</code> 类型和 <code>intent</code> 参数。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="acceptance-plan">
+  <h2>验收方案概览</h2>
+  <div class="card">
+    <p>当前 v2 build / launcher 入口与历史 T1–T13 矩阵见 <a href="legacy-opencode-migration-acceptance.md"><code>packages/local-runtime-v2/docs/legacy-opencode-migration-acceptance.md</code></a>。以下保留 fixture、XDG 隔离和原验收骨架；重跑时须按当前 v2 API 核对 REST 路由与断言，本轮未执行。</p>
+    <h3>① 基础准备</h3>
+    <table>
+      <thead><tr><th style="width: 70px;">阶段</th><th>动作</th><th>关键命令 / 入口</th></tr></thead>
+      <tbody>
+        <tr><td>Fixture</td><td>APFS reflink 拷贝用户真实 894 MB sqlite.db + 1.4 GB opencode.db</td><td class="mono-cell">cp -c $HOME/.minimax/sqlite.db /tmp/mavis-opencode-pi-test/</td></tr>
+        <tr><td>Dist</td><td>Rebuild 后启动期自检</td><td class="mono-cell">pnpm --filter @mavis/local-runtime-v2 build</td></tr>
+        <tr><td>XDG</td><td>空目录隔离,断 native DB fallback</td><td class="mono-cell">XDG_DATA_HOME / XDG_STATE_HOME 指向 fixture</td></tr>
+        <tr><td>Launcher</td><td>tracked acceptance launcher 上 :15324(<code>configGetter</code> 走 <code>@mavis/config.getConfig()</code> 读 fixture <code>config.yaml</code>)</td><td class="mono-cell">node packages/local-runtime-v2/scripts/migrated/legacy-opencode-migration-launcher.mjs</td></tr>
+        <tr><td>T1–T12</td><td>迁移 / 读取 / 性能 / 观测 - 逐项 curl + jq 断言,grep launcher.log 7 类 obs 事件</td><td class="mono-cell">见 acceptance.md §3</td></tr>
+        <tr><td>T13</td><td>续聊回归 — POST <code>/message</code> 真 LLM；初版记录为 DELETE/PATCH 仍 409，后续 T13b 已修正为 clean mode 全 status 放行（历史记录）</td><td class="mono-cell">见迁移验收方案 §3 T13 与下方 T13b 结果</td></tr>
+      </tbody>
+    </table>
+    <h3>② 真 LLM 续聊所需的 fixture config.yaml 片段(T13，脱敏等价示例，非原始实测标识)</h3>
+    <p>fixture <code>config.yaml</code> 注入可调通的 Messages-compatible provider(公司内部 gateway),以下 provider/model 仅为可运行的脱敏等价示例，不代表历史实测所用模型。launcher 启动时 <code>@mavis/config.getConfig()</code> 自动读取并装入。注意 <code>X-Sub-Module</code> 必须在 <strong>provider 级 options.headers</strong>(不是 model 级),model-resolver 只读 <code>provider.options.headers</code>。</p>
+    <pre><code>provider:
+  minimax:
+    npm: '@ai-sdk/anthropic'
+    options:
+      apiKey: &lt;real-key&gt;
+      baseURL: https://platform-api.xaminim.com/v1
+      headers:
+        X-Sub-Module: Mavis
+    models:
+      MiniMax-M3:
+        name: MiniMax-M3
+        tool_call: true
+        limit: { context: 200000, output: 8192 }
+defaultModel: minimax/MiniMax-M2.7</code></pre>
+    <p>POST 时用 model override 切到该 provider:</p>
+    <pre><code>curl -s -X POST "http://127.0.0.1:15324/mavis/api/session/$SID/message" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "content":"基于历史回答一句",
+        "model":{"provider_id":"minimax","model_id":"MiniMax-M3"}
+      }'</code></pre>
+  </div>
+</section>
+
+<section id="acceptance-results">
+  <h2>验收结果 · T1–T14 矩阵</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th style="width: 42px;">#</th><th>场景</th><th>关键证据</th><th style="width: 80px;">结果</th></tr></thead>
+      <tbody>
+        <tr><td class="num">T1</td><td>Metadata lazy — 列会话触发</td><td>303 sessions:296 metadata + 6 migrated + 1 failed</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T2</td><td>Display lazy — 打开会话 / 拉消息</td><td>SHORT 56 ms · MEDIUM 133 ms · LONG 1 666 ms · source==imported</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T3</td><td>Pi-history lazy — debug JSONL 触发</td><td>strategy=native-degraded · header v3 · NDJSON parse OK</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T4</td><td>幂等 — 重复 JSONL 命中 cache</td><td>elapsed 10.2 s → 26 ms(&lt; 0.3% 首次)· delta 仅 1 条 debug-jsonl</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T5</td><td>No-drop(display 侧)</td><td>sourceCount == importedCount on SHORT(50) MEDIUM(496) LONG(4100)</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T6</td><td>Strategy 覆盖矩阵</td><td>native-degraded ×5 + display-seed-full ×1(mv opencode.db.bak 触发 fallback)</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T7</td><td>Failed retry — 注入合成失败</td><td>HTTP 200 · session 携 migration.status=failed 元数据 · table 行状态保留 · 无自动 retry · 兼容后用户视角失败仅作错误条幅展示,所有 mutation 仍 200</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T8</td><td>Deleted marker</td><td>clean mode DELETE 任何 status 都 200 + 后续 GET 404 + migration record 落 deleted tombstone;rollback 模式 legacy daemon 托管 session 仍 409 · markSessionDeleted 不暴露 HTTP</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T9</td><td>附件规整</td><td>asset_id 落 v2/assets/YYYY/MM/DD/ · assets.jsonl 索引追加</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T10</td><td>长 session 性能(4 100 msg)</td><td>display 1 666 ms · pi-history 1 732 ms(&lt; 5 000 ms 目标)</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T11</td><td>JSONL 完整性</td><td>jq -c 每行 parse OK · line == messageCount + 1</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T12</td><td>No writeback(用户 DB 不动)</td><td>sessions / messages count == baseline · readonly:true 打开 SQLite</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T13</td><td>续聊回归 — migrated session POST /message</td><td>历史外部模型（已脱敏）的真 LLM 端到端验证(commit <code>1d618c7a5</code>):<code>mvs_df69…</code>(190 条迁移历史)POST <code>/mavis/api/session/&lt;sid&gt;/message</code> 不再返回 <code>409 read_only_legacy_session</code>;turn 1 elapsed 4 992 ms · 9 chunks · usage <code>total=18102 input=3 output=99 cache_write=18000</code>;turn 2 follow-up elapsed 4 097 ms · usage <code>total=18217 input=3 output=72 cache_write=18142</code>(turn 1 user/assistant 被纳入 context),<code>finish_reason=stop</code>,assistant 回复精准复述 session 主题与跨 turn 引用</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T13b</td><td>全 mutation 回归 — 任意 status(commit <code>6fea081e2</code>)</td><td>兼容后用户视角再无 "legacy session" 概念;clean mode 下 metadata / migrated / failed 任一 status 的 opencode 源会话 PATCH title / DELETE / POST archive / POST pin / queue 全部 200,不再出现 <code>409 read_only_legacy_session</code> 或 <code>500 legacy_session_migration_failed</code>。E2E:port 15329 launcher,最早 createdAt 的 metadata legacy SID <code>ses_24abb1d86ffebxAr8JzDqIPDoZ</code>(2026-04-22)顺序 PATCH/archive/unarchive/pin/message/DELETE — 历史外部模型（已脱敏）续聊 200(<code>finish_reason=stop · total_tokens=38676 · cache_write=38614</code>,完整 legacy history 进入 prompt cache);DELETE 200;GET 404。Reverse grep 报告:0 个 409 / 0 个 500 / 0 个 <code>read_only_legacy_session</code></td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T13c</td><td>Post-merge 回归(merge <code>origin/dev</code> 两轮 chase 之后)</td><td>merge commit <code>17b69c67e</code> 落地的 <code>openLocalMessageStream(options)</code> 新签名 + queued-messages gates + 删 synthetic-turn 二次 <code>session.start</code> emit 之后,在端口 15329 重启 launcher 用另一 SID <code>ses_24ab92bf8ffea1kqmYYHMBXtUS</code> 重跑全套(PATCH/archive/unarchive/pin/message/DELETE);7×200 + 1×404 + 0 个 409/500。POST /message HTTP envelope 200(payload <code>400 prompt is too long: 215752 &gt; 200000</code> 是 model context window 限制,与守卫无关 — 留作 I6 follow-up)</td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td class="num">T14</td><td>单元测试覆盖 — 守卫语义反转</td><td><code>host-legacy-helpers.test.ts</code> 9/9 PASS(failed/deleted 期望从 read-only 翻为 mutation 放行;唯一返 true 的 case 仅剩 <code>session.runtime === 'opencode'</code>);<code>local-api-host.test.ts</code> legacy 子集 43/43 PASS,其中 <code>reports failed clean-mode migration records for local agent root lookup</code> → <code>keeps failed clean-mode migration records visible on the local agent root lookup</code>,HTTP 500 翻为 HTTP 200 + <code>migration.status: 'failed'</code> 元数据;<code>desktop-route</code> 14/14 / <code>synthetic-turn</code> 3/3 / <code>local-channel-infra</code> 17/17 / <code>observability</code> 5/5;typecheck 0 error;lint baseline 6 warnings 不变</td><td><span class="pill pass">PASS</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="perf">
+  <h2>性能与观测</h2>
+  <div class="compat-grid">
+    <div class="card">
+      <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;margin:0 0 8px">三档 session 迁移耗时(ms)</h3>
+      <div class="chart-wrap"><canvas id="perfChart"></canvas></div>
+      <p class="footnote">native-degraded 策略下,display + pi-history 双阶段串行;目标 &lt; 5 000 ms。</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;margin:0 0 8px">Observability 事件分布</h3>
+      <div class="ev-row"><span class="name">start</span><div class="bar"><div style="width: 100%;"></div></div><span class="count">1 824</span></div>
+      <div class="ev-row"><span class="name">debug-jsonl</span><div class="bar"><div style="width: 0.5%;"></div></div><span class="count">2</span></div>
+      <div class="ev-row"><span class="name">display-import done</span><div class="bar"><div style="width: 0.3%;"></div></div><span class="count">1</span></div>
+      <div class="ev-row"><span class="name">pi-history strategy</span><div class="bar"><div style="width: 0.3%;"></div></div><span class="count">1</span></div>
+      <div class="ev-row"><span class="name">pi-history-import done</span><div class="bar"><div style="width: 0.3%;"></div></div><span class="count">1</span></div>
+      <div class="ev-row"><span class="name">done</span><div class="bar"><div style="width: 0.3%;"></div></div><span class="count">1</span></div>
+      <div class="ev-row"><span class="name">failed</span><div class="bar"><div style="width: 0%;"></div></div><span class="count">0</span></div>
+      <p class="footnote">幂等命中只补一条 <code>debug-jsonl</code> — controller 层短路,不再唤起 migrator。</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;margin:0 0 10px">T13 真 LLM 续聊实测（历史外部模型（已脱敏）· <code>mvs_df69…</code>，190 条迁移历史）</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 90px;">轮次</th>
+          <th>elapsed</th>
+          <th>streaming chunks</th>
+          <th>finish_reason</th>
+          <th>total_tokens</th>
+          <th>input_tokens</th>
+          <th>output_tokens</th>
+          <th>cache_write</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Turn 1</strong></td><td>4 992 ms</td><td>9</td><td><span class="pill pass">stop</span></td><td>18 102</td><td>3 (cache hit)</td><td>99</td><td><strong>18 000</strong></td></tr>
+        <tr><td><strong>Turn 2</strong>(follow-up)</td><td>4 097 ms</td><td>9</td><td><span class="pill pass">stop</span></td><td>18 217</td><td>3 (cache hit)</td><td>72</td><td><strong>18 142</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="footnote" style="margin-top:12px">18k input tokens(<code>cache_write</code>)= 190 条迁移历史真实进入 prompt context;Turn 2 <code>cache_write</code> 增长涵盖 Turn 1 的 user / assistant,跨 turn 续聊上下文连续。该会话在同一时段的 PATCH title / POST archive / POST pin / DELETE 全部 200(详见 follow-up 行 PR-diff 表 + T13b/T13c 测试)。clean mode 下不再有任何 user-reachable 路径返回 <code>409 read_only_legacy_session</code>。</p>
+  </div>
+</section>
+
+<section id="dist-check">
+  <h2>启动期 dist 自检</h2>
+  <div class="card">
+    <p>Launcher 启动时 <code>stat</code> <code>packages/local-runtime-v2/src/**</code> 与 <code>packages/local-runtime-v2/dist/**</code> 的最新 mtime;若 src 比 dist 新 ≥ 1 s 即 <code>process.exit(2)</code> 并打印 rebuild 指令,<strong>不会启 HTTP server</strong>。这保证 <code>[legacy-opencode-migration]</code> observability 不会被陈旧 dist 静默吞掉。</p>
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14px;font-weight:600;margin:14px 0 4px">正常输出</h3>
+<pre>[legacy-migration-launcher] dist freshness OK (src ..., dist ...).
+[legacy-migration-launcher] listening on http://127.0.0.1:15324
+[legacy-opencode-migration] start ... includeMessages=true includePiHistory=true
+[legacy-opencode-migration] display-import done messages=84 elapsedMs=41
+[legacy-opencode-migration] pi-history strategy=native-degraded nativeMessages=3 imported=3
+[legacy-opencode-migration] pi-history-import done strategy=native-degraded messages=3 elapsedMs=27
+[legacy-opencode-migration] done status=migrated sourceCount=84 importedCount=84 totalElapsedMs=10212
+[legacy-opencode-migration] debug-jsonl messages=3 bytes=4564</pre>
+    <h3 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:14px;font-weight:600;margin:14px 0 4px">Stale dist 时的 fail-loud</h3>
+<pre>[legacy-migration-launcher] FATAL: dist/ is stale relative to src/.
+  newest src : 2026-06-26T06:46:00.537Z  legacy-opencode-migrator.ts
+  newest dist: 2026-06-26T04:26:28.422Z  host-factory.js
+  src is 8372.1s newer than dist.
+
+  Rebuild before relaunching:
+    pnpm --filter @mavis/local-runtime-v2 build
+exit_code=2</pre>
+    <p class="footnote">绕过自检:<code>MAVIS_LAUNCHER_SKIP_DIST_CHECK=1</code>(仅限有外部验证 prebuilt dist 的 CI 镜像)。</p>
+  </div>
+</section>
+
+<section id="issues">
+  <h2>已知 issues 速查</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th style="width: 50px;">ID</th><th style="width: 80px;">严重度</th><th>现象</th><th style="width: 110px;">状态</th></tr></thead>
+      <tbody>
+        <tr><td class="num">I1</td><td><span class="pill warn">major</span></td><td>陈旧 dist 静默吞掉 <code>[legacy-opencode-migration]</code> observability</td><td><span class="pill pass">已落地 dist 自检</span></td></tr>
+        <tr><td class="num">I2</td><td>minor</td><td>幂等命中无 <code>existing-seed-preserved</code> 标记日志(controller 层短路更强但与早期规范不一致)</td><td><span class="pill warn">follow-up</span></td></tr>
+        <tr><td class="num">I3</td><td>minor</td><td>failed 状态无自动恢复路径,需手动 <code>DELETE FROM local_runtime_legacy_migrations</code></td><td><span class="pill pass">已弱化(commit 6fea081e2:user 视角不再需要恢复,DELETE / PATCH / archive 全 200 直接处理)</span></td></tr>
+        <tr><td class="num">I4</td><td>minor</td><td>缺 XDG 隔离时 native DB fallback 链会回退读取用户真 <code>~/.local/share/opencode/opencode.db</code></td><td><span class="pill pass">文档化</span></td></tr>
+        <tr><td class="num">I5</td><td>minor</td><td>SHA256 比对在 APFS reflink 下漂移(copy-on-write 正常行为,逻辑内容才是 invariant)</td><td><span class="pill pass">文档化</span></td></tr>
+        <tr><td class="num">I6</td><td>minor</td><td>4 100 msg 级历史 session 在 POST /message 实际可能触发 Messages-compatible 400 <code>prompt is too long: &gt; 200000 maximum</code>(model 上下文窗,与守卫无关 — HTTP envelope 仍是 200)</td><td><span class="pill warn">follow-up: 续聊前自动 compress / 选更大 context 的 model</span></td></tr>
+        <tr><td class="num">I7</td><td><span class="pill warn">major</span></td><td>v1 native converter 输出的 <code>{type:'reasoning'}</code> / <code>{type:'tool-call'}</code> / <code>role:'tool'</code> 都不被 pi-agent 认识,replay 时 tool call / tool result 完全丢失;还漏读 opencode 的 <code>part.data.tool</code> / <code>callID</code> / <code>state.{input,output,error}</code> 字段导致 <code>type:'tool'</code> part 被当 unsupported 丢弃</td><td><span class="pill pass">已修复(v2 converter + <code>piHistoryConverterVersion</code> 补偿重迁,详见 <a href="#converter-version">v1→v2 补偿重迁</a>)</span></td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">I2 为后续 follow-up issue 候选,I3 在 commit 6fea081e2 后已弱化(failed 不再阻塞 mutation),I6 是 model-side context window 限制(超大 session 续聊场景);I7 是 native converter shape 漏 pi-agent schema 的问题,已通过 v2 converter + <code>piHistoryConverterVersion</code> 自动补偿修复(旧 <code>native-*</code> 记录 stale-check 后下一次 POST 会自动重迁,无需手动清理)。</p>
+  </div>
+</section>
+
+<footer style="margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;">
+配套 <a href="legacy-opencode-migration-acceptance.md"><code>packages/local-runtime-v2/docs/legacy-opencode-migration-acceptance.md</code></a>(当前入口与历史验收矩阵)·
+历史 observability 前缀 <code>[legacy-opencode-migration]</code> · MR !3773
+(commits: <code>1d618c7a5</code> 初版守卫收敛 + <code>6fea081e2</code> 全 status 放行 + <code>17b69c67e</code> / <code>a43ac6990</code> dev 同步) ·
+历史源码路径基于 <code>packages/local-runtime/src/{legacy-opencode,api,persistence}/**</code>；
+当前维护参见 <a href="../src/service/session-system/legacy-migration/README.md">Session System 迁移 owner</a>，不恢复旧执行链。
+</footer>
+
+</main>
+<script>
+  const ctx = document.getElementById('perfChart');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['SHORT · 50 msg', 'MEDIUM · 496 msg', 'LONG · 4 100 msg'],
+      datasets: [
+        { label: 'display-import', data: [56, 133, 1666], backgroundColor: '#2f6f5e', borderRadius: 6, barThickness: 22 },
+        { label: 'pi-history-import', data: [49, 113, 1732], backgroundColor: '#5b5a8b', borderRadius: 6, barThickness: 22 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { font: { family: "'Outfit', sans-serif", size: 12 }, color: '#3a4256', boxWidth: 12, boxHeight: 12, usePointStyle: true, pointStyle: 'rectRounded' },
+        },
+        tooltip: {
+          backgroundColor: '#14171e',
+          titleFont: { family: "'Outfit', sans-serif" },
+          bodyFont: { family: "'JetBrains Mono', monospace" },
+          callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y} ms` },
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: "'Outfit', sans-serif", size: 11 }, color: '#7c7a72' } },
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: "'JetBrains Mono', monospace", size: 10 }, color: '#7c7a72', callback: (v) => v + ' ms' }, max: 2000 },
+      },
+    },
+  });
+</script>
+</body>
+</html>

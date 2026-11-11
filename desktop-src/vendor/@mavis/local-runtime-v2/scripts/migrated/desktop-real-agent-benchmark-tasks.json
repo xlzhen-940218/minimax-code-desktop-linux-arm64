@@ -1,0 +1,123 @@
+{
+  "_comment": "Mcode Benchmark conversation tasks (first 15, Feishu sheet HYWisFp7dhY7jltBhilcszwBnxd rows 2-16). Used by desktop-real-agent-continuity-e2e.mjs as data-driven LIVENESS cases: each query is sent as a real LLM turn; the harness asserts the chain fired (meaningful SSE + assistant content + terminal state) and tool calls fire at suite level. It does NOT judge task correctness (no automatable rubric). Some tasks reference local attachments absent in CI; those still exercise the chain. Regenerate from the sheet, do not hand-edit queries.",
+  "tasks": [
+    {
+      "id": "bench-01",
+      "name": "AI客服系统采购调研：Intercom Fin/Zendesk AI/网易七鱼三方对比与成本测算",
+      "category": "复杂任务",
+      "tags": "调研/PPT/成本测算/跨产品对比",
+      "query": "我在考虑给公司客服部门上 AI 客服系统，目前候选是 Intercom 的 Fin、Zendesk AI 和网易七鱼。帮我把这三家产品扒干净——定价模式、AI 能力、实际解决率数据、背后用的什么模型、公司背景都要查清楚。然后帮我做一个采购建议 PPT，我们客服团队 10 个人，日均 1000 通会话，预算每月 5 万人民币以内。",
+      "note": "https://www.feishu.cn/docx/K3qndz1kSoZGPVxexo9cdrkbnYo"
+    },
+    {
+      "id": "bench-02",
+      "name": "短链接服务全栈选型与实现",
+      "category": "代码生成",
+      "tags": "全栈/存储选型/成本测算/Docker/压测",
+      "query": "我要做一个短链接服务，情况是这样的：日均创建 1 万条短链接，日均 500 万次点击重定向，累计预计存 300 万条。大部分链接的点击量很低，但偶尔有爆款链接会被社交媒体转发，单条链接峰值能到每秒 5000 次点击。\n\n帮我做三件事：\n\n1. 对比 Redis、PostgreSQL、DynamoDB 三种存储方案的月费成本，要算出具体数字，用的是 AWS 的托管服务（ElastiCache / RDS / DynamoDB），区域 us-east-1\n\n2. 选最优方案实现完整的短链接服务：短链接生成（POST /shorten）、301 重定向（GET /:code）、点击统计（GET /stats/:code），要有防刷限流\n\n3. 用 Docker Compose 把服务跑起来，然后用 wrk 做压测，告诉我实际 QPS 和延迟",
+      "note": "https://www.feishu.cn/docx/J8wEd6sSXo0XIXx5eO7c2rvknWh"
+    },
+    {
+      "id": "bench-03",
+      "name": "GitHub Trending 五月数据分析与可视化网页",
+      "category": "代码生成",
+      "tags": "爬虫/历史榜单/数据清洗/数据分析/HTML可视化/Excel",
+      "query": "帮我写一个 Python 数据分析项目，分析 2026 年 5 月 GitHub Trending 历史榜单数据，并生成一份可在浏览器打开的可视化报告网页。\n\n要求：\n\n1. 采集 2026-05-01 至 2026-05-31 的每日 GitHub Trending 历史榜单数据，并保存为 `github_trending_2026-05.csv`。CSV 字段至少包含：`date`、`rank`、`repo`、`owner`、`language`、`stars`、`stars_today`、`description`、`url`\n2. 清洗数据：去重、处理缺失值、统一字段格式\n3. 按编程语言分组统计：每种语言的上榜记录数、去重仓库数、总 Star 增长、平均 Star 增长\n4. 分析 2026 年 5 月榜单排名与趋势：Top 5 语言每日 Star 增长趋势、每日榜首仓库、月度 Star 增长最高仓库、峰值日期、增长最高语言和上榜最频繁语言\n5. 生成一份本地 HTML 可视化报告网页，包含关键指标卡、语言分布柱状图、Top 5 语言每日趋势折线图、月度 Top 仓库榜、每日榜首时间线、语言汇总表和重点洞察\n6. 输出 Excel 文件（含清洗后明细、语言统计汇总、Top 仓库、每日趋势等多个 sheet）以及 PNG 图片文件。CSV 只作为采集明细文件，不能用 CSV 代替多 sheet Excel\n\n代码要能直接跑通，`pip install -r requirements.txt` 后执行 `python main.py` 就能完成采集、清洗、分析和产出。",
+      "note": "https://www.feishu.cn/docx/Pb45dtRBJofEk7xZ7eSc1lKZnag"
+    },
+    {
+      "id": "bench-04",
+      "name": "多租户 SaaS 脚手架搭建",
+      "category": "代码生成",
+      "tags": "多租户/RBAC/APIKey/Webhook/Docker/PostgreSQL",
+      "query": "帮我从零搭一个多租户 SaaS 后端框架，技术栈 Python FastAPI + PostgreSQL，要求：\n\n1. 租户隔离用 PostgreSQL schema 级隔离（每个租户一个 schema）\n2. 实现一个租户内业务资源，例如 `projects`：支持创建、列表、详情查询，用来验证 tenant schema 隔离\n3. RBAC 权限系统：至少支持 admin / member / viewer 三个角色；admin 可管理用户和 API Key，member 可读写业务资源，viewer 只读\n4. API Key 鉴权：每个租户可以创建多个 API Key，API Key 绑定 tenant、role 和 scopes；默认 scopes 由角色决定，也允许创建 Key 时在不超过角色上限的范围内自定义 scopes；支持吊销\n5. 用量计量 + 限额：记录每个租户的 API 调用次数，超限返回 429\n6. Webhook 事件推送：租户注册 webhook URL，特定事件（如 user.created、project.created、quota.exceeded）时推送通知\n\n用 Docker Compose 启动整套服务（FastAPI + PostgreSQL，可包含一个 mock webhook receiver 服务），提供一份 curl 脚本能跑通完整 onboarding 流程：\n\n创建租户 → 创建 API Key → 创建用户 → 创建/读取业务资源 → 查看用量 → 触发限额 429 → 触发 Webhook → 创建第二个租户并验证跨租户访问被拒绝。",
+      "note": "https://www.feishu.cn/docx/ErqodqNFyoDYIixmXiNccvQenkO"
+    },
+    {
+      "id": "bench-05",
+      "name": "CODE-04 Nginx 日志高性能 CLI 分析器",
+      "category": "Code",
+      "tags": "Go/Rust, CLI, Nginx, 日志分析, 性能工程, 数据处理",
+      "query": "帮我用 Go 或 Rust 写一个高性能 CLI 工具，用来分析 Nginx access log。要求：\n\n1. 解析标准 combined 格式的 Nginx access log，日志文件可能超过 100MB\n2. 支持通过命令行参数指定：日志文件路径、输出目录、时间范围过滤（`--from` / `--to`）、是否启用路径归一化（`--normalize-paths`）\n3. 统计并输出：Top 10 归一化请求路径、Top 10 IP、状态码分布、每小时请求数和小时平均 QPS、每小时 5xx 错误率、Top referrer domain、bot/crawler User-Agent 占比、可疑 IP 列表\n4. 路径归一化规则至少包括：去掉 query string，将数字 ID 替换为 `:id`，将 UUID 替换为 `:uuid`\n5. 输出 JSON 统计报告、CSV 逐行解析明细、CSV 小时趋势汇总\n6. 能处理异常行、IPv6、超长 User-Agent、escaped quotes、二进制垃圾数据，不能 panic\n7. 使用流式处理，内存占用不能随日志文件大小线性增长；CSV 明细也必须边解析边写出\n8. 实现完成后，用附件中的 access log 跑一次分析，确认能生成 JSON 统计报告、CSV 逐行明细和 CSV 小时汇总；代码也需能处理 100MB 以上日志文件，并给出一次本地性能测试结果\n\n代码要能直接跑通：编译后执行 CLI 即可分析日志并生成报告。",
+      "note": "https://vrfi1sk8a0.feishu.cn/docx/AsGkdg3vIo3OXexLvoScdUV1nUf"
+    },
+    {
+      "id": "bench-06",
+      "name": "LAW-03 中国劳动合同员工权益审查",
+      "category": "法律分析",
+      "tags": "中国劳动法, 劳动合同, 竞业限制, 员工权益, 仲裁预测, L/R/F/P",
+      "query": "我是一名程序员，在北京一家互联网公司工作了 3 年。上个月公司以“组织架构调整、岗位撤并”为由辞退我，当天通知当天离职，没有提前 30 天书面通知，也没有和我协商调岗或变更劳动合同。公司已经按 N+1 给我打了一笔离职补偿，但要求我签竞业限制协议。\n\n我的情况：\n\n1. 入职时间：2023 年 5 月 20 日；解除时间：2026 年 5 月 20 日\n2. 岗位：后端开发工程师，参与推荐系统、用户画像和广告投放平台开发\n3. 离职前 12 个月平均月薪：35,000 元，其中固定工资 28,000 元，绩效奖金目标值 7,000 元\n4. 公司给的竞业限制协议：期限 2 年，限制范围写成“所有互联网平台、广告技术、推荐算法、搜索、电商、本地生活、短视频、社交、云计算、AI 大模型及数据服务公司”，每月补偿 2,000 元，违约金 800,000 元\n5. 公司扣了我最后一个月绩效奖金，说我“未完成 OKR”，但 OKR 从来没有书面确认过，也没有给我看过绩效评分依据\n\n附件是我的劳动合同节选和竞业限制协议节选。请帮我输出一份完整的法律分析报告，回答：\n\n1. 公司以“组织架构调整、岗位撤并”为由辞退我是否合法？N+1 够不够？\n2. 竞业限制补偿金 2,000 元/月是否合理？这个竞业限制协议哪些条款可能对我不利或可能被调整？\n3. 我能不能直接不遵守竞业限制？如果不能，正确做法是什么？\n4. 公司扣最后一个月绩效奖金是否合法？\n5. 如果我申请劳动仲裁，各项请求的胜算、可主张金额和证据重点分别是什么？\n\n请引用中国现行法律、司法解释或权威案例/裁判规则，区分“确定性结论”和“需要结合证据/地方口径判断的风险点”。这不是让我直接起诉，请按法律分析报告格式输出。",
+      "note": "https://www.feishu.cn/docx/GNW6dZwpzoxaM1xKkvEceatznUe"
+    },
+    {
+      "id": "bench-07",
+      "name": "REC-01 推荐算法论文复现消融实验",
+      "category": "科研",
+      "tags": "推荐系统/NCF/LightGCN/MovieLens/消融/冷启动",
+      "query": "帮我复现两篇推荐算法论文的核心实验：NCF和LightGCN。数据集用MovieLens 1M。要求实现可运行代码，完成整体效果对比、关键消融实验，并做冷启动分组分析。输出实验报告说明实现差异、实验结果、消融结论、冷启动分组结论。代码/命令/表格/图表/报告都要，确保能复现。",
+      "note": "https://www.feishu.cn/docx/NrXDdXlDioT4fVxMNi1cRCBJnTh"
+    },
+    {
+      "id": "bench-08",
+      "name": "CASE-76 Notion 定价演变分析与建议",
+      "category": "投资商业",
+      "tags": "SaaS定价/ARPU/AI变现/Notion/竞品/研究质量",
+      "query": "我在研究SaaS产品如何通过免费层、团队协作和AI功能提升付费转化与ARPU。请以Notion为案例，分析它从早期个人版限制、取消限制、推出团队/商业版，到引入Notion AI和后续AI计费变化的定价演变。输出完整分析报告含：1.关键定价变化时间线 2.每次调价背后的产品和商业原因 3.当前各套餐和AI的价格/权限结构 4.如何影响转化/扩张/ARPU 5.对类似SaaS的定价建议。要求引用可靠来源，价格标注查询日期和计费口径。",
+      "note": "https://www.feishu.cn/docx/MAhVdBl9doqEq6xaN2Sc413knSg"
+    },
+    {
+      "id": "bench-09",
+      "name": "CASE-69 ML入门教学课件全套",
+      "category": "跨模态",
+      "tags": "ML教学/PPT/Notebook/DOCX/梯度下降/公式精确",
+      "query": "我要给没有ML背景的产品经理和初级数据分析师做2小时ML入门培训。产出：1.15页左右PPT覆盖ML定义到端到端案例 2.可运行Jupyter notebook演示线性/逻辑回归完整流程含梯度下降 3.练习题DOCX含选择/简答/计算/实践题+答案。保证公式正确、适合入门、代码能跑、PPT视觉清晰。",
+      "note": "https://www.feishu.cn/docx/DSbNd29avoxGxAxRUU9c7xrwneh"
+    },
+    {
+      "id": "bench-10",
+      "name": "CLIN-01 临床试验终点切换核查",
+      "category": "医学科研",
+      "tags": "临床试验/ClinicalTrials.gov/论文核查/outcome switching/选择性报告",
+      "query": "我在做一项临床试验报道透明度核查，想检查论文发表内容与 ClinicalTrials.gov 注册信息是否存在 outcome switching 或选择性报告。\n\n请以这项研究为对象：\n- ClinicalTrials.gov：NCT01038271\n- 论文：Temel JS 等，Early palliative care for patients with metastatic non-small-cell lung cancer，New England Journal of Medicine，2010，DOI: 10.1056/NEJMoa1000678\n\n请你自行获取 ClinicalTrials.gov 记录和论文 PDF/正文，输出一份完整核查报告。报告至少包括：研究基本信息和材料来源；注册 primary/secondary outcomes、时间点和版本/注册时间信息；论文实际报告的 primary/secondary outcomes、时间点、量表/指标和主要结果；注册信息与论文之间的逐项对照表；对 outcome switching、选择性报告、时间点变化、终点层级变化的判断；结论中说明证据强度和局限性，避免把无法证明的事项说成确定事实。"
+    },
+    {
+      "id": "bench-11",
+      "name": "MED-02 糖尿病患者再入院预测与临床决策",
+      "category": "医学数据分析",
+      "tags": "糖尿病/再入院预测/Kaggle/UCI/缺失值/药物特征/SHAP/临床决策",
+      "query": "请用 Kaggle / UCI 的 Diabetes 130-US hospitals for years 1999-2008 数据集，做一个资源受限但真实可复现的糖尿病患者 30 天内再入院风险预测项目。\n\n要求：\n1. 明确建模目标，处理 readmitted 三类标签（<30、>30、NO），预测 30 天内再入院风险；\n2. 提供可复现代码、运行说明、图表和最终报告；\n3. 处理缺失值、类别编码、诊断 ICD-9 分组、药物宽表字段，并说明 HbA1c / max_glu_serum 中“未检测”的临床含义；\n4. 构建并比较逻辑回归和 XGBoost 两类轻量 baseline 模型，不做重型调参，禁止 GridSearchCV/RandomizedSearchCV、完整交叉验证、n_jobs=-1、后台训练和全量 SHAP；\n5. 输出模型评估、特征重要性、抽样 SHAP 或等价解释、风险分层和临床决策建议报告。"
+    },
+    {
+      "id": "bench-12",
+      "name": "MED-03 Meta分析Forest Plot复现",
+      "category": "医学科研",
+      "tags": "Meta分析/forest plot/Python/RR/I²/固定效应/随机效应",
+      "query": "请用 Python 复现一份二分类结局的 Meta 分析 forest plot。数据如下，每行是一项研究，treatment/control 分别为干预组和对照组事件数/总人数：\n\n| study | event_t | total_t | event_c | total_c |\n|---|---:|---:|---:|---:|\n| ALPHA | 12 | 100 | 24 | 100 |\n| BETA | 18 | 120 | 30 | 118 |\n| GAMMA | 40 | 150 | 28 | 152 |\n| DELTA | 8 | 90 | 20 | 88 |\n| EPSILON | 55 | 200 | 38 | 205 |\n| ZETA | 6 | 80 | 18 | 82 |\n| ETA | 30 | 110 | 22 | 112 |\n| THETA | 14 | 95 | 27 | 97 |\n\n要求：\n1. 用 risk ratio (RR) 作为效应量，计算每项研究的 log(RR)、SE、95% CI、权重。\n2. 计算 fixed-effect pooled RR，并画 forest plot。\n3. 计算异质性 Q、I²、tau²；如果 I² 很高，需要同时给 random-effects pooled RR，并解释为什么不能只看固定效应。\n4. 输出 Python 代码、CSV/JSON 结果表、forest plot PNG，以及一份简短报告。\n5. 图表需要专业可读，包含研究名称、RR、95% CI、权重、合并效应 diamond、无效线 RR=1。",
+      "note": "核心坑：fixed-effect forest plot + I²≈79% 高异质性；新增完整 leave-one-out、方向分组、过程审计和文件一致性要求。Rubric 更新为 38 分制。"
+    },
+    {
+      "id": "bench-13",
+      "name": "ENG-01 PCB走线IPC标准合规检查",
+      "category": "工业工程",
+      "tags": "PCB/KiCad/Gerber/IPC-2221/DRC/几何计算/多层板",
+      "query": "附件是一个简化的多层 PCB KiCad 项目输入包 PCB-01-input.zip，包含 pcb_fixture.kicad_pcb、stackup.csv、net_voltage.csv、design_constraints.csv，不包含 expected violations。请用 Python 编写一个 PCB 设计规则检查工具，解析真实 KiCad PCB 文件中的走线、层、net 和 via 几何，并读取约束文件，检查走线宽度、不同电压 net 间距、过孔钻孔和 annular ring 是否合规。\n\n输入说明：\n- pcb_fixture.kicad_pcb：KiCad board 文件。\n- stackup.csv：层角色 metadata，例如外层/内层。\n- net_voltage.csv：net 电压等级 metadata，例如 LOW_0_100、HV_100_300、reference。\n- design_constraints.csv：简化设计约束阈值，包括不同电压等级/层类型 clearance、track width、via drill、via annular ring。\n\n要求：\n1. 真实解析附件中的 KiCad 文件和 CSV metadata / constraints，不得手工抄违规结果。\n2. 支持 F.Cu / In1.Cu / B.Cu，多层板外层和内层间距规则不同。\n3. 说明为什么单独 Gerber 通常缺少 net/电压语义，若使用 Gerber 需额外 netlist/constraints；本题可优先解析 KiCad 文件。\n4. 输出违规清单 JSON/CSV，包含 layer、net、rule、measured、required、location、severity。\n5. 输出一份检查报告，解释约束来源、发现的违规、修复建议和局限。\n6. 提供可运行命令和测试/验证日志。",
+      "note": "附件已放桌面 /Users/wxj/Desktop/mcode/PCB-01-input.zip；仅含 pcb_fixture.kicad_pcb、stackup.csv、net_voltage.csv、design_constraints.csv 四个输入文件；无 README、无 schema、无 expected violations。"
+    },
+    {
+      "id": "bench-14",
+      "name": "ENG-02 建筑结构抗震设防审查",
+      "category": "工业工程",
+      "tags": "建筑结构/抗震/GB50011/Python/底部剪力法/轴压比/层间位移角",
+      "query": "附件包含两个 sheet：structure_params 和 floor_data。请用 Python 做一个钢筋混凝土框架结构抗震设防审查小工具，读取附件数据后按 GB 50011 相关思路完成底部剪力法计算、楼层地震作用分配、柱轴压比验算和层间位移角验算，并输出计算表、违规清单和审查报告。\n\n要求：\n1. 必须实际读取 Excel 的 structure_params 与 floor_data 两个 sheet，不得把输入数据硬编码到代码里。\n2. 使用底部剪力法计算结构总水平地震作用，并按楼层分配地震作用和层剪力。\n3. 根据抗震等级判断柱轴压比限值，并逐层验算柱轴压比。\n4. 根据层剪力和楼层侧向刚度计算弹性层间位移角，并按附件给定限值逐层验算。\n5. 输出 CSV 计算表和 CSV 违规清单，至少区分柱轴压比超限和层间位移角超限。\n6. 输出审查报告，说明采用的计算方法、关键结果、是否满足设防审查、风险点和调整建议。\n7. 所有单位、公式来源、限值口径和不覆盖的完整规范审查范围必须在报告中写清楚。",
+      "note": "附件已放桌面 /Users/wxj/Desktop/mcode/ENG-02/seismic_review_input.xlsx；rubric 更新为新版 40 条，强化 Excel 读取、输入校验、单位链、CSV 输出一致性。"
+    },
+    {
+      "id": "bench-15",
+      "name": "ENG-03 暖通HVAC冷热负荷计算",
+      "category": "工业工程",
+      "tags": "HVAC/冷热负荷/ASHRAE62.1/多区通风/逐时仿真/设备优化/Python",
+      "query": "附件为 hvac_load_input.xlsx。请把它做成一个小型 HVAC 负荷计算器，而不是只算单点结果：读取多区、多时段、分朝向幕墙、新风、设备目录和 expert_scenarios，完成逐时冷负荷、冬季热负荷、多场景敏感性、设备组合选择、图表和报告。\n\n要求：按 zone × time × orientation 计算太阳得热和传热；按 Rp/Ra/Ez 做分区新风；识别峰值并做设备三约束选型；对 expert_scenarios 至少跑 BASE、ROTATED_FACADE、LOW_SHGC 三个场景；输出 CSV、HTML/PNG 图和报告。",
+      "note": "Expert/Hard+ v2：工具型 HVAC，多场景敏感性、图表、设备三约束；BASE 峰值 15:00 / 159.535kW。"
+    }
+  ]
+}

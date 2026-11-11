@@ -27,10 +27,17 @@ const skipped = new Set([
   ".mypy_cache",
   ".ruff_cache",
 ]);
+// `desktop-src` is a verbatim snapshot of the unpacked desktop bundle. It is
+// distributed as an immutable build input, not as reviewed first-party source:
+// the text it contains is whatever the upstream Electron bundle shipped, so it
+// is neither listed in the inventory nor scanned by the text policy below.
+// See AGENTS.md ("Untracked application snapshots").
+const skippedRoots = new Set(["desktop-src"]);
 function filesIn(directory, prefix = "") {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     if (skipped.has(entry.name) || entry.name.endsWith(".tsbuildinfo"))
       return [];
+    if (!prefix && skippedRoots.has(entry.name)) return [];
     const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
     if (entry.isSymbolicLink())
       throw new Error(`Source symlink requires explicit review: ${relative}`);

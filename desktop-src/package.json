@@ -1,0 +1,12 @@
+{
+  "name": "minimax-code-desktop-src",
+  "version": "3.1.13",
+  "private": true,
+  "description": "Editable source tree of the MiniMax Code desktop app, extracted from the official Windows build.",
+  "workspaces": [
+    "app",
+    "vendor/@mavis/*",
+    "vendor/@minimax/*",
+    "vendor/@earendil-works/*"
+  ]
+}

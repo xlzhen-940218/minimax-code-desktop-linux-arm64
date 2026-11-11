@@ -10,6 +10,14 @@ This repository is the reviewed public projection of an internal monorepo, not a
 - `docs/` — human-readable documentation and supporting media.
 - `scripts/` — build and verification tooling. Shared constants live in `scripts/lib/`; import them instead of repeating literal paths or lists.
 - `test/` — repository-level tests and `vitest-suites.json`, the declaration of every Vitest file this distribution runs.
+- `desktop/` — build tooling that turns the official Windows installer into a Linux package.
+- `desktop-src/` — the unpacked desktop application as an editable, buildable tree (see below).
+
+## Untracked application snapshots
+
+`desktop-src/` is not first-party source. It holds the application bundle exactly as the upstream Electron build shipped it, together with the npm manifests needed to reinstall its dependencies and recompile its native modules. The upstream bundle embeds build-machine paths, internal host names, and generated service code that this repository's text policy forbids; rewriting them would change bytes the application depends on.
+
+The directory is therefore excluded from both `release/public-source.json` and the text scan in `scripts/source-inventory.mjs` (`skippedRoots`). It is published as an immutable input, and its content is not covered by the review that the inventory records. Do not add files to it by hand, and do not treat its presence in `public-source.json` as evidence of review — it never appears there. Changes to how it is installed or built belong in `desktop-src/scripts/`, `desktop-src/run.sh`, and `desktop-src/README.md`.
 
 ## Generated files
 

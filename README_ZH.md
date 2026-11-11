@@ -302,6 +302,8 @@ minimax-code
 
 Release 中的 `arm64` 安装包已在 Debian 13、MiniMax Code 3.1.13 与 Electron 42.11.16 下验证；`x64` 安装包可在 x64 主机上用 `--arch x64` 以同样方式构建。自行构建或升级请参考 [desktop/README.md](desktop/README.md)。
 
+想直接阅读或修改应用本身，请使用 [desktop-src/](desktop-src/)：解包后的应用以可编辑的 npm workspace 形式提供，包含锁定版本的依赖清单，以及下载 Electron、重编译原生模块的脚本。执行 `./scripts/setup.sh` 后再运行 `./run.sh` 即可在 Linux 上启动。该目录是官方安装包的原样快照，不属于本仓库的源码审查清单，详见 `AGENTS.md`。
+
 该构建不由 MiniMax 发布或支持。桌面应用本身仍为闭源专有软件，并受 MiniMax 服务条款约束。
 
 ## 桌面版与问题反馈

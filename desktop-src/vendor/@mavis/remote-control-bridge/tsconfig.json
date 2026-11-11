@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.node.json",
+  "compilerOptions": {
+    "incremental": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src/**/*.ts"]
+}

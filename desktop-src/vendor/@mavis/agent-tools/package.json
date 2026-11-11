@@ -1,0 +1,78 @@
+{
+  "name": "@mavis/agent-tools",
+  "version": "0.2.1",
+  "description": "Platform-owned runtime tool definitions and helpers for Mavis hosts.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "bin": {
+    "mavis-matrix-mcp-stdio": "./dist/desktop/matrix-mcp-stdio.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    },
+    "./cloud": {
+      "types": "./src/cloud/index.ts",
+      "import": "./dist/cloud/index.js"
+    },
+    "./desktop": {
+      "types": "./src/desktop/index.ts",
+      "import": "./dist/desktop/index.js"
+    },
+    "./desktop/subagent-roles": {
+      "types": "./src/desktop/subagent-roles.ts",
+      "import": "./dist/desktop/subagent-roles.js"
+    },
+    "./desktop/managed-routing": {
+      "types": "./src/desktop/managed-routing.ts",
+      "import": "./dist/desktop/managed-routing.js"
+    },
+    "./read-contract": {
+      "types": "./src/shared/read-contract.ts",
+      "import": "./dist/shared/read-contract.js"
+    },
+    "./desktop/matrix-mcp-stdio": {
+      "types": "./src/desktop/matrix-mcp-stdio.ts",
+      "import": "./dist/desktop/matrix-mcp-stdio.js"
+    },
+    "./plugin-hooks": {
+      "types": "./src/plugin-hooks/index.ts",
+      "import": "./dist/plugin-hooks/index.js"
+    }
+  },
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "file:../../@earendil-works/pi-agent-core",
+    "@earendil-works/pi-coding-agent": "file:../../@earendil-works/pi-coding-agent",
+    "@mavis/agent-core": "file:../agent-core",
+    "@mavis/plugin-hooks": "file:../plugin-hooks",
+    "@mavis/background-task": "file:../background-task",
+    "@mavis/context-manager": "file:../context-manager",
+    "@mavis/protocol": "file:../protocol",
+    "@mavis/shared": "file:../shared",
+    "@mavis/system-reminder": "file:../system-reminder",
+    "@mavis/team": "file:../team",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@sinclair/typebox": "0.34.49",
+    "@vscode/ripgrep": "1.18.0",
+    "diff": "8.0.4",
+    "jszip": "3.10.1",
+    "js-yaml": "4.1.1",
+    "minimatch": "10.2.6",
+    "shell-quote": "1.8.3",
+    "tar": "7.5.22",
+    "undici": "6.24.1",
+    "unpdf": "1.6.2",
+    "zod": "3.25.76",
+    "@mavis/conversation-contract": "file:../conversation-contract"
+  },
+  "devDependencies": {
+    "@mavis/thrift-gen": "file:../thrift-gen",
+    "@types/js-yaml": "^4",
+    "@types/node": "20.19.39",
+    "@types/shell-quote": "^1.7.5",
+    "typescript": "^5",
+    "vitest": "^2"
+  }
+}

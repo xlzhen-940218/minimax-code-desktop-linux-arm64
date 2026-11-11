@@ -1,0 +1,53 @@
+{
+  "name": "@mavis/computer-use",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./development": {
+      "types": "./dist/development-component.d.ts",
+      "import": "./dist/development-component.js",
+      "default": "./dist/development-component.js"
+    },
+    "./mapping": {
+      "types": "./dist/mapping.d.ts",
+      "import": "./dist/mapping.js",
+      "default": "./dist/mapping.js"
+    },
+    "./cua-protocol": {
+      "types": "./dist/cua-protocol.d.ts",
+      "import": "./dist/cua-protocol.js",
+      "default": "./dist/cua-protocol.js"
+    },
+    "./cua-driver-runtime": {
+      "types": "./dist/cua-driver-runtime.d.ts",
+      "import": "./dist/cua-driver-runtime.js",
+      "default": "./dist/cua-driver-runtime.js"
+    },
+    "./cua-launch-observation": {
+      "types": "./dist/cua-launch-observation.d.ts",
+      "import": "./dist/cua-launch-observation.js",
+      "default": "./dist/cua-launch-observation.js"
+    },
+    "./cua-logging": {
+      "types": "./dist/cua-logging.d.ts",
+      "import": "./dist/cua-logging.js",
+      "default": "./dist/cua-logging.js"
+    }
+  },
+  "optionalDependencies": {
+    "@trycua/cua-driver": "0.34.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.39",
+    "typescript": "^5",
+    "vitest": "^2"
+  }
+}

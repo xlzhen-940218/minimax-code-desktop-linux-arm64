@@ -1,0 +1,35 @@
+{
+  "name": "@minimax/mcode-app-server-protocol",
+  "version": "0.1.0",
+  "description": "Fixed V1 wire contract for the MCode SSH app-server.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npmmirror.xaminim.com/"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.39",
+    "typescript": "^5",
+    "vitest": "^2"
+  },
+  "dependencies": {
+    "@mavis/shared": "file:../../@mavis/shared"
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "name": "@mavis/local-runtime-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    },
+    "./process-local": {
+      "types": "./src/local/host-contract.ts",
+      "import": "./dist/local/host-contract.js"
+    },
+    "./cli-service": {
+      "types": "./src/local/index.ts",
+      "import": "./dist/local/index.js"
+    },
+    "./logging": {
+      "types": "./src/infra/logging/index.ts",
+      "import": "./dist/infra/logging/index.js"
+    },
+    "./wechat-sdk": {
+      "types": "./src/service/channel-system/transport/wechat/sdk/index.ts",
+      "import": "./dist/service/channel-system/transport/wechat/sdk/index.js"
+    },
+    "./testing": {
+      "types": "./src/testing/index.ts",
+      "import": "./dist/testing/index.js"
+    },
+    "./canonical-history": {
+      "types": "./src/infra/file/canonical-history.ts",
+      "import": "./dist/infra/file/canonical-history.js"
+    },
+    "./session-system": {
+      "types": "./src/service/session-system/index.ts",
+      "import": "./dist/service/session-system/index.js"
+    },
+    "./turn-system": {
+      "types": "./src/service/turn-system/index.ts",
+      "import": "./dist/service/turn-system/index.js"
+    },
+    "./agent": {
+      "types": "./src/service/agent/public.ts",
+      "import": "./dist/service/agent/public.js"
+    },
+    "./ppt-preview-cli": {
+      "types": "./src/service/ppt-preview/publication/ppt-preview-cli.ts",
+      "import": "./dist/service/ppt-preview/publication/ppt-preview-cli.js"
+    },
+    "./diagnostics": {
+      "types": "./src/infra/diagnostics/index.ts",
+      "import": "./dist/infra/diagnostics/index.js"
+    },
+    "./observability": {
+      "types": "./src/infra/observability/index.ts",
+      "import": "./dist/infra/observability/index.js"
+    },
+    "./routing": {
+      "types": "./src/infra/config/routing-headers.ts",
+      "import": "./dist/infra/config/routing-headers.js"
+    },
+    "./runtime-owner": {
+      "types": "./src/infra/runtime-owner/index.ts",
+      "import": "./dist/infra/runtime-owner/index.js"
+    },
+    "./workspace-indexing": {
+      "types": "./src/infra/legacy-db/workspace-indexing-types.ts",
+      "import": "./dist/infra/legacy-db/workspace-indexing-types.js"
+    }
+  },
+  "jscpd": {
+    "threshold": 5,
+    "reporters": [
+      "console"
+    ],
+    "minLines": 5,
+    "minTokens": 50,
+    "mode": "mild",
+    "format": [
+      "typescript"
+    ],
+    "ignore": [
+      "src/http/routing/bindings.gen.ts",
+      "src/http/routing/contracts.gen.ts",
+      "src/http/generated/**",
+      "src/**/*.test.ts"
+    ]
+  },
+  "knip": {
+    "entry": [
+      "src/index.ts!",
+      "scripts/memory-headless.mjs!",
+      "scripts/memory-executions.mjs!",
+      "src/local/host-contract.ts!",
+      "src/local/index.ts!",
+      "src/infra/logging/index.ts!",
+      "src/testing/index.ts!",
+      "src/application/index.ts!",
+      "src/infra/file/canonical-history.ts!",
+      "src/service/session-system/index.ts!",
+      "src/service/turn-system/index.ts!",
+      "src/service/agent/public.ts!",
+      "src/service/turn-system/agent-host/index.ts!",
+      "src/service/turn-system/compaction/index.ts!",
+      "src/service/model-system/index.ts!",
+      "src/http/routing/bindings.gen.ts!",
+      "src/http/routing/contracts.gen.ts!",
+      "src/http/generated/**!",
+      "src/service/channel-system/transport/wechat/sdk/index.ts!",
+      "src/infra/diagnostics/index.ts!",
+      "src/infra/observability/index.ts!",
+      "src/infra/config/routing-headers.ts!",
+      "src/infra/runtime-owner/index.ts!",
+      "src/infra/legacy-db/workspace-indexing-types.ts!",
+      "src/service/turn-system/agent-host/runner/ptc/quickjs-worker.ts!",
+      "src/service/model-access-extension/host-process/shim/host-entry.ts!"
+    ],
+    "project": [
+      "src/**/*.ts!",
+      "!src/**/*.test.ts!",
+      "!src/**/*.test-support.ts!"
+    ]
+  },
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "file:../../@earendil-works/pi-agent-core",
+    "@earendil-works/pi-ai": "file:../../@earendil-works/pi-ai",
+    "@earendil-works/pi-coding-agent": "file:../../@earendil-works/pi-coding-agent",
+    "@mavis/agent-core": "file:../agent-core",
+    "@mavis/agent-extension": "file:../agent-extension",
+    "@mavis/agent-runtime": "file:../agent-runtime",
+    "@mavis/agent-tools": "file:../agent-tools",
+    "@mavis/config": "file:../config",
+    "@mavis/context-manager": "file:../context-manager",
+    "@mavis/conversation-contract": "file:../conversation-contract",
+    "@mavis/cron": "file:../cron",
+    "@mavis/goal": "file:../goal",
+    "@mavis/mcp": "file:../mcp",
+    "@minimax/model-access-sdk": "file:../../@minimax/model-access-sdk",
+    "@mavis/permission": "file:../permission",
+    "@mavis/plugin-hooks": "file:../plugin-hooks",
+    "@mavis/protocol": "file:../protocol",
+    "@mavis/session-report": "file:../session-report",
+    "@mavis/shared": "file:../shared",
+    "@mavis/skills": "file:../skills",
+    "@mavis/system-reminder": "file:../system-reminder",
+    "@mavis/thrift-gen": "file:../thrift-gen",
+    "@mavis/thrift-gen-client": "file:../thrift-gen-client",
+    "@minimax/mcode-sandbox-runtime": "file:../../@minimax/mcode-sandbox-runtime",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@napi-rs/keyring": "2.1.1",
+    "@sinclair/typebox": "0.34.49",
+    "better-sqlite3": "12.11.1",
+    "bmp-js": "0.1.0",
+    "croner": "9.1.0",
+    "diff": "8.0.4",
+    "drizzle-orm": "0.45.2",
+    "es-module-lexer": "1.7.0",
+    "gpt-tokenizer": "3.4.0",
+    "handlebars": "4.7.9",
+    "hono": "4.13.0",
+    "jpeg-js": "0.4.4",
+    "js-yaml": "4.1.1",
+    "jszip": "3.10.1",
+    "pngjs": "6.0.0",
+    "proper-lockfile": "4.1.2",
+    "quickjs-emscripten": "0.31.0",
+    "saxes": "6.0.0",
+    "smol-toml": "1.7.0",
+    "typebox": "1.1.38",
+    "yaml": "2.9.0",
+    "zod": "3.25.76",
+    "@mavis/background-task": "file:../background-task"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "9.6.0",
+    "@types/js-yaml": "^4",
+    "@types/node": "20.19.39",
+    "@types/pngjs": "^6.0.5",
+    "@types/proper-lockfile": "^4",
+    "dependency-cruiser": "18.1.0",
+    "jscpd": "^5.0.12",
+    "knip": "^6.27.0",
+    "typescript": "^5",
+    "vitest": "^2"
+  },
+  "optionalDependencies": {
+    "@larksuiteoapi/node-sdk": "1.60.0"
+  }
+}

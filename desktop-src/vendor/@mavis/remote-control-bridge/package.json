@@ -1,0 +1,23 @@
+{
+  "name": "@mavis/remote-control-bridge",
+  "version": "0.2.1",
+  "description": "Host-neutral Remote Control bridge for the Mavis desktop product path.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "ws": "8.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.39",
+    "@types/ws": "8.18.1",
+    "typescript": "^5",
+    "vitest": "^2"
+  }
+}

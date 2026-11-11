@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.node.json",
+  "compilerOptions": {
+    "incremental": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["node"],
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts", "src/service/**/__dev__/**/*.ts"]
+}
