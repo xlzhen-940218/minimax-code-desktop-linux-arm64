@@ -303,7 +303,7 @@ sudo apt install ./minimax-code_3.1.13_arm64.deb
 minimax-code
 ```
 
-The release publishes an `arm64` Debian package verified on Debian 13 with MiniMax Code 3.1.13 and Electron 42.11.16; `x64` packages are built the same way with `--arch x64` on an x64 host. To build or update it yourself, follow [desktop/README.md](desktop/README.md).
+The release publishes an `arm64` Debian package verified on Debian 13 with MiniMax Code 3.1.13 and Electron 42.11.16; `x64` packages are built the same way with `--arch x64` on an x64 host (verified on Zorin OS 18.1 / Ubuntu 24.04 with MiniMax Code 3.1.14). To build or update it yourself, follow [desktop/README.md](desktop/README.md).
 
 If you want to read or patch the application itself, use [desktop-src/](desktop-src/): the unpacked app as an editable npm workspace, with the pinned dependency manifests and the script that downloads Electron and recompiles the native modules. `./scripts/setup.sh` then `./run.sh` runs it on Linux. That tree is a verbatim snapshot of the shipped bundle and is not part of this repository's reviewed source inventory; see `AGENTS.md`.
 
