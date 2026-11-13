@@ -17,6 +17,8 @@ application and a Debian package.
 
 - Verified on Debian 13 (trixie), arm64, with MiniMax Code 3.1.13 and Electron 42.11.16.
 - Login, the task workspace, the embedded terminal, and native modules were tested.
+- Also verified on Zorin OS 18.1 (Ubuntu 24.04 base), x64, with MiniMax Code 3.1.14 and
+  Electron 42.11.16: build, login and the model list were tested.
 - The build is not published or supported by MiniMax. MiniMax Code itself stays
   proprietary and is subject to MiniMax's terms of service.
 
@@ -70,6 +72,27 @@ Environment variables with the same names (`INSTALLER`, `ARCH`, `ELECTRON_VERSIO
 output location) and `DEB_COMPRESS` (Debian compression, default `xz`). Setting
 `DEB_COMPRESS=zstd` produces the package faster on hosts whose `dpkg` supports zstd;
 the default `xz` keeps the package installable on older releases such as Ubuntu 22.04.
+
+### Verified build from official sources
+
+`desktop/build-linux-verified.sh` fetches every input itself and checks it before
+building, for anyone who wants an auditable build without mirrors:
+
+- the MiniMax installer from `file.cdn.minimax.io`, checked against the sha512 in
+  MiniMax's own update feed (`latest.yml`);
+- the Electron runtime and headers from the official GitHub release and
+  `artifacts.electronjs.org`, checked against Electron's `SHASUMS256.txt`;
+- npm packages from `registry.npmjs.org`, with `ELECTRON_MIRROR` set to an invalid
+  host so no mirror is used.
+
+```bash
+./desktop/build-linux-verified.sh --portable
+```
+
+It stops on any checksum mismatch, refuses to run as root, picks the architecture
+from the host, and writes `desktop/dist/SHA256SUMS-<version>.txt` for the outputs.
+Pass `--installer <path>` to reuse an installer you already downloaded; it is still
+checked against the current feed.
 
 ### Updating to a new MiniMax Code release
 
@@ -150,6 +173,7 @@ Logs are written to `~/.config/MiniMax/logs/`.
 ```text
 desktop/
 ├── build-linux.sh              # build entry point
+├── build-linux-verified.sh     # official-sources-only wrapper with checksum checks
 ├── dist/                       # generated packages (not committed)
 ├── assets/
 │   ├── icon.png                # 256x256 application icon
